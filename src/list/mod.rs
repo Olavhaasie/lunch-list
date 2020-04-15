@@ -1,9 +1,9 @@
 use actix_web::{delete, get, put, web, HttpResponse, Responder};
 use r2d2_redis::redis::Commands;
-use r2d2_redis::{r2d2, RedisConnectionManager};
 use serde_json::json;
 
 use crate::errors::ServiceError;
+use crate::Pool;
 
 mod list_model;
 mod list_type;
@@ -13,8 +13,8 @@ use list_model::List;
 #[get("/list/{id}")]
 async fn get_list(
     id: web::Path<usize>,
-    db: web::Data<r2d2::Pool<RedisConnectionManager>>,
-) -> Result<HttpResponse, ServiceError> {
+    db: web::Data<Pool>,
+) -> Result<impl Responder, ServiceError> {
     web::block(move || {
         let mut conn = db.get().unwrap();
         conn.hgetall(&format!("list:{}", id))
@@ -34,7 +34,7 @@ async fn get_list(
 #[delete("/list/{id}")]
 async fn delete_list(
     id: web::Path<usize>,
-    db: web::Data<r2d2::Pool<RedisConnectionManager>>,
+    db: web::Data<Pool>,
 ) -> Result<impl Responder, ServiceError> {
     web::block(move || {
         let mut conn = db.get().unwrap();
@@ -54,8 +54,8 @@ async fn delete_list(
 #[put("/list")]
 async fn put_list(
     list: web::Json<List>,
-    db: web::Data<r2d2::Pool<RedisConnectionManager>>,
-) -> Result<HttpResponse, ServiceError> {
+    db: web::Data<Pool>,
+) -> Result<impl Responder, ServiceError> {
     web::block(move || {
         let mut conn = db.get().unwrap();
         let next_list_id: usize = conn.incr("next_list_id", 1)?;
