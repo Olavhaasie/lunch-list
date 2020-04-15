@@ -1,8 +1,9 @@
-use actix_web::{delete, get, put, web, HttpResponse, Result};
-use log::error;
-use r2d2_redis::redis::{Commands, RedisError};
+use actix_web::{delete, get, put, web, HttpResponse, Responder};
+use r2d2_redis::redis::Commands;
 use r2d2_redis::{r2d2, RedisConnectionManager};
 use serde_json::json;
+
+use crate::errors::ServiceError;
 
 mod list_model;
 mod list_type;
@@ -13,8 +14,8 @@ use list_model::List;
 async fn get_list(
     id: web::Path<usize>,
     db: web::Data<r2d2::Pool<RedisConnectionManager>>,
-) -> Result<HttpResponse> {
-    let res = web::block(move || {
+) -> Result<HttpResponse, ServiceError> {
+    web::block(move || {
         let mut conn = db.get().unwrap();
         conn.hgetall(&format!("list:{}", id))
     })
@@ -27,45 +28,35 @@ async fn get_list(
             HttpResponse::NotFound().finish()
         }
     })
-    .map_err(|e| {
-        error!("{:?}", e);
-        HttpResponse::InternalServerError()
-    })?;
-
-    Ok(res)
+    .map_err(ServiceError::from)
 }
 
 #[delete("/list/{id}")]
 async fn delete_list(
     id: web::Path<usize>,
     db: web::Data<r2d2::Pool<RedisConnectionManager>>,
-) -> Result<HttpResponse> {
-    let res = web::block(move || {
+) -> Result<impl Responder, ServiceError> {
+    web::block(move || {
         let mut conn = db.get().unwrap();
         conn.del::<&str, bool>(&format!("list:{}", id))
     })
     .await
     .map(|b| {
         if b {
-            HttpResponse::NoContent().finish()
+            HttpResponse::NoContent()
         } else {
-            HttpResponse::NotFound().finish()
+            HttpResponse::NotFound()
         }
     })
-    .map_err(|e| {
-        error!("{:?}", e);
-        HttpResponse::InternalServerError()
-    })?;
-
-    Ok(res)
+    .map_err(ServiceError::from)
 }
 
 #[put("/list")]
 async fn put_list(
     list: web::Json<List>,
     db: web::Data<r2d2::Pool<RedisConnectionManager>>,
-) -> Result<HttpResponse> {
-    let res = web::block(move || {
+) -> Result<HttpResponse, ServiceError> {
+    web::block(move || {
         let mut conn = db.get().unwrap();
         let next_list_id: usize = conn.incr("next_list_id", 1)?;
         conn.hset_multiple(
@@ -79,12 +70,7 @@ async fn put_list(
     })
     .await
     .map(|id| HttpResponse::Created().json(json!({ "id": id })))
-    .map_err(|e: actix_web::error::BlockingError<RedisError>| {
-        error!("{:?}", e);
-        HttpResponse::InternalServerError()
-    })?;
-
-    Ok(res)
+    .map_err(ServiceError::from)
 }
 
 pub fn config(cfg: &mut web::ServiceConfig) {

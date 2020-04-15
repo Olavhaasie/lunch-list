@@ -886,6 +886,7 @@ dependencies = [
  "actix-web",
  "chrono",
  "env_logger",
+ "failure",
  "log",
  "r2d2_redis",
  "serde",
