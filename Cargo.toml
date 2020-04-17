@@ -12,6 +12,10 @@ readme = "README.md"
 
 keywords = ["webapp", "webserver", "actix", "redis"]
 
+[[bin]]
+name = "ll"
+path = "src/main.rs"
+
 [dependencies]
 actix-web = "2"
 actix-rt = "1"
