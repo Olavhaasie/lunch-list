@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-use std::{fmt, str::FromStr};
+use std::{cmp::PartialEq, fmt, str::FromStr};
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub enum ListType {
     #[serde(rename = "lunch")]
