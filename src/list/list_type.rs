@@ -1,6 +1,6 @@
-use std::{str::FromStr, string::ToString};
-
 use serde::{Deserialize, Serialize};
+
+use std::{fmt, str::FromStr};
 
 #[derive(Deserialize, Serialize)]
 #[serde(tag = "type")]
@@ -23,11 +23,11 @@ impl FromStr for ListType {
     }
 }
 
-impl ToString for ListType {
-    fn to_string(&self) -> String {
+impl fmt::Display for ListType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Lunch => "lunch".to_string(),
-            Self::Dinner => "dinner".to_string(),
+            Self::Lunch => write!(f, "lunch"),
+            Self::Dinner => write!(f, "dinner"),
         }
     }
 }

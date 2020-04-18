@@ -1,9 +1,12 @@
 use actix_web::{delete, get, put, web, HttpResponse, Responder};
-use r2d2_redis::redis::Commands;
+use chrono::Datelike;
+use r2d2_redis::{redis, redis::Commands};
 use serde_json::json;
 
 use crate::errors::ServiceError;
 use crate::Pool;
+
+use std::ops::DerefMut;
 
 mod list_model;
 mod list_type;
@@ -38,10 +41,15 @@ async fn delete_list(
 ) -> Result<impl Responder, ServiceError> {
     web::block(move || {
         let mut conn = db.get().unwrap();
-        conn.del::<&str, bool>(&format!("list:{}", id))
+        let id = id.into_inner();
+        redis::pipe()
+            .zrem("dates:lunch", id)
+            .zrem("dates:dinner", id)
+            .del(&format!("list:{}", id))
+            .query(conn.deref_mut())
     })
     .await
-    .map(|b| {
+    .map(|(_, _, b): (bool, bool, bool)| {
         if b {
             HttpResponse::NoContent()
         } else {
@@ -58,15 +66,27 @@ async fn put_list(
 ) -> Result<impl Responder, ServiceError> {
     web::block(move || {
         let mut conn = db.get().unwrap();
-        let next_list_id: usize = conn.incr("next_list_id", 1)?;
-        conn.hset_multiple(
-            &format!("list:{}", next_list_id),
-            &[
-                ("type", list.list_type.to_string()),
-                ("date", list.date.to_string()),
-            ],
-        )?;
-        Ok(next_list_id)
+        let dates_key = format!("dates:{}", list.list_type);
+        redis::transaction(conn.deref_mut(), &[&dates_key], |conn, pipe| {
+            let days = list.date.num_days_from_ce();
+            let list_id: Vec<usize> = conn.zrangebyscore(&dates_key, days, days)?;
+            match list_id.first() {
+                Some(&id) => Ok(Some(id)),
+                None => {
+                    let id: usize = conn.incr("next_list_id", 1)?;
+                    pipe.hset_multiple(
+                        &format!("list:{}", id),
+                        &[
+                            ("type", list.list_type.to_string()),
+                            ("date", list.date.to_string()),
+                        ],
+                    )
+                    .zadd(&dates_key, id, days)
+                    .query(conn)?;
+                    Ok(Some(id))
+                }
+            }
+        })
     })
     .await
     .map(|id| HttpResponse::Created().json(json!({ "id": id })))
