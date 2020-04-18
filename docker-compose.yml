@@ -12,14 +12,10 @@ services:
       - backend
 
   api:
-    build:
-      context: .
-      args:
-        port: "46018"
-        redis_host: "redis"
-    image: lunch-list
+    build: .
+    image: docker.pkg.github.com/olavhaasie/lunch-list/lunch-list
     ports:
-      - "40618:40618"
+      - "46018:46018"
     networks:
       - backend
     depends_on:
