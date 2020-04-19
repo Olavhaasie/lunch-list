@@ -23,13 +23,15 @@ async fn get_list(
 ) -> Result<impl Responder, ServiceError> {
     web::block(move || {
         let mut conn = db.get().unwrap();
-        conn.hgetall(&format!("list:{}", id))
+        redis::pipe()
+            .hgetall(&format!("list:{}", id))
+            .smembers(&format!("users:{}", id))
+            .query(conn.deref_mut())
     })
     .await
-    .map(List::from_hash)
-    .map(|list| {
-        if let Some(list) = list {
-            HttpResponse::Ok().json(list)
+    .map(|(list, users)| {
+        if let Some(list) = List::from_hash(list) {
+            HttpResponse::Ok().json(list.with_users(users))
         } else {
             HttpResponse::NotFound().finish()
         }
@@ -74,11 +76,12 @@ async fn delete_list(
         redis::pipe()
             .zrem("dates:lunch", id)
             .zrem("dates:dinner", id)
+            .del(&format!("users:{}", id))
             .del(&format!("list:{}", id))
             .query(conn.deref_mut())
     })
     .await
-    .map(|(_, _, b): (bool, bool, bool)| {
+    .map(|(_, _, _, b): (bool, bool, bool, bool)| {
         if b {
             HttpResponse::NoContent()
         } else {

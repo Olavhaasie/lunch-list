@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use chrono::naive::NaiveDate;
 use serde::{Deserialize, Serialize};
@@ -11,6 +11,8 @@ pub struct List {
     pub list_type: ListType,
     #[serde(rename = "date")]
     pub date: NaiveDate,
+    #[serde(skip_deserializing, skip_serializing_if = "Option::is_none")]
+    users: Option<HashSet<String>>,
 }
 
 impl List {
@@ -29,6 +31,15 @@ impl List {
             .unwrap()
             .parse::<NaiveDate>()
             .expect("date not formatted as ISO 8601");
-        Some(Self { list_type, date })
+        Some(Self {
+            list_type,
+            date,
+            users: None,
+        })
+    }
+
+    pub fn with_users(mut self, users: HashSet<String>) -> Self {
+        self.users = Some(users);
+        self
     }
 }
