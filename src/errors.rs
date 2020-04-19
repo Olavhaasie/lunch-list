@@ -45,7 +45,7 @@ impl ResponseError for ServiceError {
             Self::Unauthorized => StatusCode::UNAUTHORIZED,
             Self::InvalidJwt(_) => StatusCode::BAD_REQUEST,
             Self::UserAlreadyExists { .. } => StatusCode::BAD_REQUEST,
-            Self::MissingAuthHeader => StatusCode::BAD_REQUEST,
+            Self::MissingAuthHeader => StatusCode::UNAUTHORIZED,
             Self::InvalidHeader => StatusCode::BAD_REQUEST,
             _ => StatusCode::INTERNAL_SERVER_ERROR,
         }
