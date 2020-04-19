@@ -7,6 +7,8 @@ use super::list_type::ListType;
 
 #[derive(Deserialize, Serialize)]
 pub struct List {
+    #[serde(skip_deserializing)]
+    pub id: usize,
     #[serde(rename = "type", flatten)]
     pub list_type: ListType,
     #[serde(rename = "date")]
@@ -16,7 +18,7 @@ pub struct List {
 }
 
 impl List {
-    pub fn from_hash(hash: HashMap<String, String>) -> Option<Self> {
+    pub fn from_hash(id: usize, hash: HashMap<String, String>) -> Option<Self> {
         if hash.is_empty() {
             return None;
         }
@@ -32,6 +34,7 @@ impl List {
             .parse::<NaiveDate>()
             .expect("date not formatted as ISO 8601");
         Some(Self {
+            id,
             list_type,
             date,
             users: None,

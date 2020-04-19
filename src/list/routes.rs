@@ -19,6 +19,7 @@ async fn get_list(
     _claims: Claims,
     db: web::Data<Pool>,
 ) -> Result<impl Responder, ServiceError> {
+    let id = id.into_inner();
     web::block(move || {
         let mut conn = db.get().unwrap();
         redis::pipe()
@@ -28,7 +29,7 @@ async fn get_list(
     })
     .await
     .map(|(list, users)| {
-        if let Some(list) = List::from_hash(list) {
+        if let Some(list) = List::from_hash(id, list) {
             HttpResponse::Ok().json(list.with_users(users))
         } else {
             HttpResponse::NotFound().finish()
@@ -55,7 +56,7 @@ async fn get_lists(
         ids.into_iter()
             .map(|id| {
                 conn.hgetall(&format!("list:{}", id))
-                    .map(|l| List::from_hash(l).unwrap())
+                    .map(|l| List::from_hash(id, l).unwrap())
             })
             .collect::<Result<Vec<List>, _>>()
     })
