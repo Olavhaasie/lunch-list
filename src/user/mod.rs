@@ -1,6 +1,5 @@
 use actix_web::web;
 
-mod claims;
 mod login;
 mod routes;
 

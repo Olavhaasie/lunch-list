@@ -1,4 +1,5 @@
-pub mod errors;
+mod auth;
+mod errors;
 pub mod list;
 pub mod user;
 

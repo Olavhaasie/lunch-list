@@ -5,8 +5,8 @@ use serde_json::json;
 
 use std::ops::DerefMut;
 
-use super::claims::Claims;
 use super::login::Login;
+use crate::auth::Claims;
 use crate::errors::ServiceError;
 use crate::Pool;
 
