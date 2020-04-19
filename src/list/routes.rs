@@ -11,10 +11,12 @@ use std::ops::DerefMut;
 use super::list_model::List;
 use super::list_query::ListQuery;
 use super::list_type::ListType;
+use crate::auth::Claims;
 
 #[get("/list/{id}")]
 async fn get_list(
     id: web::Path<usize>,
+    _claims: Claims,
     db: web::Data<Pool>,
 ) -> Result<impl Responder, ServiceError> {
     web::block(move || {
@@ -38,6 +40,7 @@ async fn get_list(
 #[get("/list")]
 async fn get_lists(
     query: web::Query<ListQuery>,
+    _claims: Claims,
     db: web::Data<Pool>,
 ) -> Result<impl Responder, ServiceError> {
     web::block(move || {
@@ -64,6 +67,7 @@ async fn get_lists(
 #[delete("/list/{id}")]
 async fn delete_list(
     id: web::Path<usize>,
+    _claims: Claims,
     db: web::Data<Pool>,
 ) -> Result<impl Responder, ServiceError> {
     web::block(move || {
@@ -90,6 +94,7 @@ async fn delete_list(
 #[put("/list")]
 async fn put_list(
     list: web::Json<List>,
+    _claims: Claims,
     db: web::Data<Pool>,
 ) -> Result<impl Responder, ServiceError> {
     web::block(move || {
