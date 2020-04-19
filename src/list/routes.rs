@@ -75,14 +75,13 @@ async fn delete_list(
         let mut conn = db.get().unwrap();
         let id = id.into_inner();
         redis::pipe()
-            .zrem("dates:lunch", id)
-            .zrem("dates:dinner", id)
+            .zrem("dates", id)
             .del(&format!("users:{}", id))
             .del(&format!("list:{}", id))
             .query(conn.deref_mut())
     })
     .await
-    .map(|(_, _, _, b): (bool, bool, bool, bool)| {
+    .map(|(_, _, b): (bool, bool, bool)| {
         if b {
             HttpResponse::NoContent()
         } else {
