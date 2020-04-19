@@ -1,7 +1,9 @@
 use actix_web::{post, web, HttpResponse, Responder};
 use jsonwebtoken::{encode, EncodingKey, Header};
-use r2d2_redis::redis::Commands;
+use r2d2_redis::{redis, redis::Commands};
 use serde_json::json;
+
+use std::ops::DerefMut;
 
 use super::claims::Claims;
 use super::login::Login;
@@ -38,5 +40,35 @@ pub async fn login(
     })
     .await
     .map(|token| HttpResponse::Ok().json(json!({ "token": token })))
+    .map_err(ServiceError::from)
+}
+
+#[post("/user")]
+pub async fn create_user(
+    user: web::Json<Login>,
+    db: web::Data<Pool>,
+) -> Result<impl Responder, ServiceError> {
+    web::block(move || {
+        let user = user.into_inner();
+        let mut conn = db.get().unwrap();
+        let exists: bool = conn.hexists("users", &user.username)?;
+        if exists {
+            Err(ServiceError::UserAlreadyExists {
+                username: user.username,
+            })
+        } else {
+            let user_id: usize = conn.incr("next_user_id", 1)?;
+            redis::pipe()
+                .hset("users", &user.username, user_id)
+                .hset_multiple(
+                    &format!("user:{}", user_id),
+                    &[("username", user.username), ("password", user.password)],
+                )
+                .query(conn.deref_mut())?;
+            Ok(user_id)
+        }
+    })
+    .await
+    .map(|id| HttpResponse::Created().json(json!({ "id": id })))
     .map_err(ServiceError::from)
 }

@@ -24,6 +24,8 @@ pub enum ServiceError {
     InvalidJwt(JwtError),
     #[fail(display = "Internal Server Error")]
     EnvError(env::VarError),
+    #[fail(display = "User with username '{}' already exists", username)]
+    UserAlreadyExists { username: String },
 }
 
 impl ResponseError for ServiceError {
@@ -35,6 +37,7 @@ impl ResponseError for ServiceError {
         match self {
             Self::Unauthorized => StatusCode::UNAUTHORIZED,
             Self::InvalidJwt(_) => StatusCode::BAD_REQUEST,
+            Self::UserAlreadyExists { .. } => StatusCode::BAD_REQUEST,
             _ => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
