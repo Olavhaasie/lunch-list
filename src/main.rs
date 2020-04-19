@@ -4,6 +4,7 @@ use r2d2_redis::{r2d2, RedisConnectionManager};
 use std::env;
 
 use lunch_list::list;
+use lunch_list::user;
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
@@ -21,7 +22,11 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .data(pool.clone())
             .wrap(middleware::Logger::default())
-            .service(web::scope("/api").configure(list::config))
+            .service(
+                web::scope("/api")
+                    .configure(list::config)
+                    .configure(user::config),
+            )
     })
     .bind(&format!("{}:{}", addr, port))?
     .run()
