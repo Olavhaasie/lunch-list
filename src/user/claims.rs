@@ -10,9 +10,9 @@ use crate::errors::ServiceError;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Claims {
-    sub: String,
+    pub sub: String,
     exp: usize,
-    user_id: usize,
+    pub user_id: usize,
 }
 
 impl Claims {
@@ -41,7 +41,7 @@ impl FromRequest for Claims {
                 };
                 let token = match auth.to_str() {
                     Ok(value) => match value.split("Bearer").nth(1) {
-                        Some(t) => t,
+                        Some(t) => t.trim(),
                         None => return err(ServiceError::MissingAuthHeader),
                     },
                     Err(e) => return err(e.into()),

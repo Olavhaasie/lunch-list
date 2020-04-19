@@ -1,4 +1,4 @@
-use actix_web::{post, web, HttpResponse, Responder};
+use actix_web::{get, post, web, HttpResponse, Responder};
 use jsonwebtoken::{encode, EncodingKey, Header};
 use r2d2_redis::{redis, redis::Commands};
 use serde_json::json;
@@ -71,4 +71,9 @@ pub async fn create_user(
     .await
     .map(|id| HttpResponse::Created().json(json!({ "id": id })))
     .map_err(ServiceError::from)
+}
+
+#[get("/user")]
+pub async fn get_user(claims: Claims) -> impl Responder {
+    HttpResponse::Ok().json(json!({ "id": claims.user_id, "username": claims.sub }))
 }
