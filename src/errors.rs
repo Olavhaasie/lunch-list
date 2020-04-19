@@ -1,6 +1,6 @@
 use actix_web::{
     error::{BlockingError, ResponseError},
-    http::StatusCode,
+    http::{header, StatusCode},
     HttpResponse,
 };
 use bcrypt::BcryptError;
@@ -29,6 +29,10 @@ pub enum ServiceError {
     UserAlreadyExists { username: String },
     #[fail(display = "Internal Server Error")]
     BcryptError(BcryptError),
+    #[fail(display = "Missing 'Authorization' header with Bearer token")]
+    MissingAuthHeader,
+    #[fail(display = "Invalid header value")]
+    InvalidHeader,
 }
 
 impl ResponseError for ServiceError {
@@ -41,6 +45,8 @@ impl ResponseError for ServiceError {
             Self::Unauthorized => StatusCode::UNAUTHORIZED,
             Self::InvalidJwt(_) => StatusCode::BAD_REQUEST,
             Self::UserAlreadyExists { .. } => StatusCode::BAD_REQUEST,
+            Self::MissingAuthHeader => StatusCode::BAD_REQUEST,
+            Self::InvalidHeader => StatusCode::BAD_REQUEST,
             _ => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
@@ -67,6 +73,12 @@ impl From<env::VarError> for ServiceError {
 impl From<BcryptError> for ServiceError {
     fn from(err: BcryptError) -> Self {
         Self::BcryptError(err)
+    }
+}
+
+impl From<header::ToStrError> for ServiceError {
+    fn from(_: header::ToStrError) -> Self {
+        Self::InvalidHeader
     }
 }
 

@@ -965,6 +965,7 @@ dependencies = [
  "chrono",
  "env_logger",
  "failure",
+ "futures",
  "jsonwebtoken",
  "log",
  "r2d2_redis",
