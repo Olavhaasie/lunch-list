@@ -22,7 +22,7 @@ pub async fn login(
         match id {
             Some(id) => {
                 let password: String = conn.hget(&format!("user:{}", id), "password")?;
-                if password == login.password {
+                if login.verify_hash(&password)? {
                     let claims = Claims::new(login.username, id);
                     let secret = std::env::var("LUNCH_LIST_SECRET")?;
                     encode(
@@ -62,7 +62,7 @@ pub async fn create_user(
                 .hset("users", &user.username, user_id)
                 .hset_multiple(
                     &format!("user:{}", user_id),
-                    &[("username", user.username), ("password", user.password)],
+                    &[("username", &user.username), ("password", &user.hash()?)],
                 )
                 .query(conn.deref_mut())?;
             Ok(user_id)

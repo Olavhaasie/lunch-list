@@ -3,6 +3,7 @@ use actix_web::{
     http::StatusCode,
     HttpResponse,
 };
+use bcrypt::BcryptError;
 use failure::Fail;
 use jsonwebtoken::errors::Error as JwtError;
 use r2d2_redis::redis::RedisError;
@@ -26,6 +27,8 @@ pub enum ServiceError {
     EnvError(env::VarError),
     #[fail(display = "User with username '{}' already exists", username)]
     UserAlreadyExists { username: String },
+    #[fail(display = "Internal Server Error")]
+    BcryptError(BcryptError),
 }
 
 impl ResponseError for ServiceError {
@@ -58,6 +61,12 @@ impl From<JwtError> for ServiceError {
 impl From<env::VarError> for ServiceError {
     fn from(err: env::VarError) -> Self {
         Self::EnvError(err)
+    }
+}
+
+impl From<BcryptError> for ServiceError {
+    fn from(err: BcryptError) -> Self {
+        Self::BcryptError(err)
     }
 }
 
