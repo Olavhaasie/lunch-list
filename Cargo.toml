@@ -5,3 +5,6 @@ members = [
     "lunch-list-frontend",
 ]
 
+[profile.release.package.lunch-list-frontend]
+# Tell `rustc` to optimize for small code size.
+opt-level = "s"
