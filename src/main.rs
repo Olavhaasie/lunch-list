@@ -4,6 +4,7 @@ use r2d2_redis::{r2d2, RedisConnectionManager};
 use std::env;
 
 use lunch_list::list;
+use lunch_list::not_found;
 use lunch_list::user;
 
 #[actix_rt::main]
@@ -27,6 +28,7 @@ async fn main() -> std::io::Result<()> {
                     .configure(list::config)
                     .configure(user::config),
             )
+            .default_service(web::route().to(not_found))
     })
     .bind(&format!("{}:{}", addr, port))?
     .run()
