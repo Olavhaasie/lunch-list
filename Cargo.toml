@@ -1,32 +1,6 @@
-[package]
-name = "lunch-list"
-version = "0.1.0"
-authors = ["Olav de Haas <https://github.com/Olavhaasie>"]
-edition = "2018"
+[workspace]
 
-description = "fast and simple web lunch attendance list"
-repository = "https://github.com/Olavhaasie/lunch-list"
-
-license = "Apache-2.0"
-readme = "README.md"
-
-keywords = ["webapp", "webserver", "actix", "redis"]
-
-[[bin]]
-name = "ll"
-path = "src/main.rs"
-
-[dependencies]
-actix-rt = "1"
-actix-web = "2"
-bcrypt = "0.7"
-chrono = { version = "0.4", features = ["serde"] }
-env_logger = "0.7"
-failure = "0.1"
-futures = "0.3"
-jsonwebtoken = "7"
-log = "0.4"
-r2d2_redis = "0.13.0"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1"
+members = [
+    "lunch-list-backend",
+]
 

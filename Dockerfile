@@ -11,7 +11,7 @@ EXPOSE $port/tcp
 WORKDIR /usr/src/lunch-list
 COPY . .
 
-RUN cargo install --path .
+RUN cargo install --path lunch-list-backend
 
 CMD ["ll"]
 

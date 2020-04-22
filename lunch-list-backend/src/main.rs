@@ -3,9 +3,9 @@ use r2d2_redis::{r2d2, RedisConnectionManager};
 
 use std::env;
 
-use lunch_list::list;
-use lunch_list::not_found;
-use lunch_list::user;
+use lunch_list_backend::list;
+use lunch_list_backend::not_found;
+use lunch_list_backend::user;
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
