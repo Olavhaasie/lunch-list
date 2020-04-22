@@ -2,5 +2,6 @@
 
 members = [
     "lunch-list-backend",
+    "lunch-list-frontend",
 ]
 

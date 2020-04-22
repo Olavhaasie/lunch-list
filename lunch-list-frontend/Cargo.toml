@@ -1,0 +1,16 @@
+[package]
+name = "lunch-list-frontend"
+version = "0.1.0"
+authors = ["Olav de Haas <https://github.com/Olavhaasie>"]
+edition = "2018"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+yew = { version = "0.13.0", features = ["web_sys"] }
+wasm-bindgen = "0.2"
+
+[profile.release]
+# Tell `rustc` to optimize for small code size.
+opt-level = "s"

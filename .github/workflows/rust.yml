@@ -6,7 +6,7 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    
+
     strategy:
       matrix:
         release_channel: [stable, beta, nightly]
@@ -20,11 +20,11 @@ jobs:
         components: clippy, rustfmt
         override: true
     - name: Build
-      run: cargo build --verbose
+      run: cargo build --verbose -p lunch-list-backend
     - name: Run tests
-      run: cargo test --verbose
+      run: cargo test --verbose -p lunch-list-backend
     - name: Check fmt
       run: cargo fmt -- --check
     - name: Run clippy
       run: cargo clippy
-    
+
