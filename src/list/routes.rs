@@ -151,3 +151,41 @@ async fn put_list(
     })
     .map_err(ServiceError::from)
 }
+
+#[put("/list/{id}/user")]
+async fn add_user(
+    id: web::Path<usize>,
+    claims: Claims,
+    db: web::Data<Pool>,
+) -> Result<impl Responder, ServiceError> {
+    let id = id.into_inner();
+    web::block(move || {
+        let mut conn = db.get().unwrap();
+        conn.sadd(&format!("users:{}", id), claims.sub)
+    })
+    .await
+    .map(|added| {
+        if added {
+            HttpResponse::Created()
+        } else {
+            HttpResponse::NoContent()
+        }
+    })
+    .map_err(ServiceError::from)
+}
+
+#[delete("/list/{id}/user")]
+async fn remove_user(
+    id: web::Path<usize>,
+    claims: Claims,
+    db: web::Data<Pool>,
+) -> Result<impl Responder, ServiceError> {
+    let id = id.into_inner();
+    web::block(move || {
+        let mut conn = db.get().unwrap();
+        conn.srem(&format!("users:{}", id), claims.sub)
+    })
+    .await
+    .map(|_: bool| HttpResponse::NoContent())
+    .map_err(ServiceError::from)
+}
