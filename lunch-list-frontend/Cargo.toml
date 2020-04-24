@@ -10,3 +10,5 @@ crate-type = ["cdylib"]
 [dependencies]
 yew = { version = "0.13.0", features = ["web_sys"] }
 wasm-bindgen = "0.2"
+web-sys = "0.3"
+

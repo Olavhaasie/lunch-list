@@ -1,16 +1,16 @@
+use web_sys::HtmlInputElement;
 use yew::services::ConsoleService;
-use yew::{html, Component, ComponentLink, Html, ShouldRender};
+use yew::{html, html::NodeRef, Component, ComponentLink, Html, ShouldRender};
 
 pub struct Model {
     link: ComponentLink<Self>,
     console: ConsoleService,
-    value: i64,
+    name_input: NodeRef,
+    password_input: NodeRef,
 }
 
 pub enum Msg {
-    Increment,
-    Decrement,
-    Bulk(Vec<Msg>),
+    Login,
 }
 
 impl Component for Model {
@@ -21,25 +21,26 @@ impl Component for Model {
         Model {
             link,
             console: ConsoleService::new(),
-            value: 0,
+            name_input: Default::default(),
+            password_input: Default::default(),
         }
+    }
+
+    fn mounted(&mut self) -> ShouldRender {
+        if let Some(input) = self.name_input.cast::<HtmlInputElement>() {
+            input.focus().expect("Failed to focus input");
+        }
+        false
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
-            Msg::Increment => {
-                self.value += 1;
-                self.console.log("plus one");
-            }
-            Msg::Decrement => {
-                self.value -= 1;
-                self.console.log("minus one");
-            }
-            Msg::Bulk(list) => {
-                for msg in list {
-                    self.update(msg);
-                    self.console.log("Bulk action");
-                }
+            Msg::Login => {
+                self.console.log("logging in");
+                let name = self.name_input.cast::<HtmlInputElement>().unwrap();
+                let password = self.password_input.cast::<HtmlInputElement>().unwrap();
+                self.console.log(&name.value());
+                self.console.log(&password.value());
             }
         }
         true
@@ -52,18 +53,17 @@ impl Component for Model {
     fn view(&self) -> Html {
         html! {
             <div>
-                <nav class="menu">
-                    <button onclick=self.link.callback(|_| Msg::Increment)>
-                        { "Increment" }
-                    </button>
-                    <button onclick=self.link.callback(|_| Msg::Decrement)>
-                        { "Decrement" }
-                    </button>
-                    <button onclick=self.link.batch_callback(|_| vec![Msg::Increment, Msg::Increment])>
-                        { "Increment Twice" }
-                    </button>
-                </nav>
-                <p>{ self.value }</p>
+                <label for="username">{ "Username" }</label>
+                <br></br>
+                <input ref=self.name_input.clone() type="text" name="username"/>
+                <br></br>
+                <label for="password">{ "Password" }</label>
+                <br></br>
+                <input ref=self.password_input.clone() type="password" name="password"/>
+                <br></br>
+                <button onclick=self.link.callback(|_| Msg::Login)>
+                    { "➡️" }
+                </button>
             </div>
         }
     }
