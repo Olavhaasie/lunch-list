@@ -11,6 +11,7 @@ name = "ll"
 path = "src/main.rs"
 
 [dependencies]
+actix-files = "0.2"
 actix-rt = "1"
 actix-web = "2"
 bcrypt = "0.7"

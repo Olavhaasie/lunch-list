@@ -1,12 +1,13 @@
 #![recursion_limit = "256"]
 
 mod app;
+mod routes;
 
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 pub fn run_app() -> Result<(), JsValue> {
-    yew::start_app::<app::Model>();
+    yew::start_app::<app::App>();
 
     Ok(())
 }

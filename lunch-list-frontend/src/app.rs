@@ -2,7 +2,7 @@ use web_sys::HtmlInputElement;
 use yew::services::ConsoleService;
 use yew::{html, html::NodeRef, Component, ComponentLink, Html, ShouldRender};
 
-pub struct Model {
+pub struct App {
     link: ComponentLink<Self>,
     console: ConsoleService,
     name_input: NodeRef,
@@ -13,12 +13,12 @@ pub enum Msg {
     Login,
 }
 
-impl Component for Model {
+impl Component for App {
     type Message = Msg;
     type Properties = ();
 
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
-        Model {
+        Self {
             link,
             console: ConsoleService::new(),
             name_input: Default::default(),
