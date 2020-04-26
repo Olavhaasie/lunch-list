@@ -1,6 +1,6 @@
 use yew_router::Switch;
 
-#[derive(Debug, Switch)]
+#[derive(Debug, Clone, Switch)]
 pub enum AppRoute {
     #[to = "/login"]
     Login,

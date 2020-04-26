@@ -1,49 +1,22 @@
-use web_sys::HtmlInputElement;
-use yew::services::ConsoleService;
-use yew::{html, html::NodeRef, Component, ComponentLink, Html, ShouldRender};
+use yew::{html, html::Component, ComponentLink, Html, ShouldRender};
+use yew_router::router::Router;
 
-pub struct App {
-    link: ComponentLink<Self>,
-    console: ConsoleService,
-    name_input: NodeRef,
-    password_input: NodeRef,
-}
+use crate::{login::LoginComponent, routes::AppRoute};
 
-pub enum Msg {
-    Login,
-}
+pub struct App {}
+
+pub enum Msg {}
 
 impl Component for App {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
-        Self {
-            link,
-            console: ConsoleService::new(),
-            name_input: Default::default(),
-            password_input: Default::default(),
-        }
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+        Self {}
     }
 
-    fn mounted(&mut self) -> ShouldRender {
-        if let Some(input) = self.name_input.cast::<HtmlInputElement>() {
-            input.focus().expect("Failed to focus input");
-        }
+    fn update(&mut self, _: Self::Message) -> ShouldRender {
         false
-    }
-
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
-        match msg {
-            Msg::Login => {
-                self.console.log("logging in");
-                let name = self.name_input.cast::<HtmlInputElement>().unwrap();
-                let password = self.password_input.cast::<HtmlInputElement>().unwrap();
-                self.console.log(&name.value());
-                self.console.log(&password.value());
-            }
-        }
-        true
     }
 
     fn change(&mut self, _: Self::Properties) -> ShouldRender {
@@ -52,19 +25,16 @@ impl Component for App {
 
     fn view(&self) -> Html {
         html! {
-            <div>
-                <label for="username">{ "Username" }</label>
-                <br></br>
-                <input ref=self.name_input.clone() type="text" name="username"/>
-                <br></br>
-                <label for="password">{ "Password" }</label>
-                <br></br>
-                <input ref=self.password_input.clone() type="password" name="password"/>
-                <br></br>
-                <button onclick=self.link.callback(|_| Msg::Login)>
-                    { "➡️" }
-                </button>
-            </div>
+            <Router<AppRoute, ()>
+                render = Router::render(|switch: AppRoute| {
+                    match switch {
+                        AppRoute::Login => html!{<LoginComponent/>},
+                        AppRoute::Lists => html!{"switch"},
+                        AppRoute::List { id } => html!{ id },
+                        AppRoute::User => html!{"user"},
+                    }
+                })
+            />
         }
     }
 }

@@ -8,7 +8,7 @@ edition = "2018"
 crate-type = ["cdylib"]
 
 [dependencies]
-yew = { version = "0.13.0", features = ["web_sys"] }
+yew = { version = "0.14.0", features = ["web_sys"] }
 yew-router = { version = "0.11", features = ["web_sys"] }
 wasm-bindgen = "0.2"
 web-sys = "0.3"
