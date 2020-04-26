@@ -33,19 +33,26 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 
 FROM node AS packager
 
-WORKDIR /usr/src/deploy
+WORKDIR /usr/src/packager
 
-RUN npm install --global rollup
+ENV DEPLOY_DIR /usr/src/deploy
+
+RUN npm install --global rollup babel-minify
 
 COPY --from=frontend-builder \
         /usr/src/lunch-list/lunch-list-frontend/index.html \
         /usr/src/lunch-list/lunch-list-frontend/main.js \
-        /usr/src/deploy/
+        /usr/src/packager/
 COPY --from=frontend-builder \
         /usr/src/lunch-list/lunch-list-frontend/pkg \
-        /usr/src/deploy/pkg
+        /usr/src/packager/pkg
 
-RUN rollup ./main.js --format iife --file ./pkg/bundle.js
+RUN rollup ./main.js --format iife --file ./pkg/bundle.js; \
+    minify pkg/bundle.js -o bundle.minified.js; \
+    mkdir -p $DEPLOY_DIR/pkg; \
+    cp index.html $DEPLOY_DIR; \
+    cp bundle.minified.js $DEPLOY_DIR/pkg/bundle.js; \
+    cp pkg/lunch_list_frontend_bg.wasm $DEPLOY_DIR/pkg
 
 
 # Create image which only contains executable

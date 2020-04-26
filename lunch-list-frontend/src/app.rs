@@ -35,6 +35,10 @@ impl Component for App {
                         AppRoute::User => html!{"user"},
                     }
                 })
+
+                redirect = Router::redirect(|_| {
+                    AppRoute::Login
+                })
             />
         }
     }
