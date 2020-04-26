@@ -1,6 +1,7 @@
-docker-compose.yml
-README.md
-LICENSE
-target
-.git*
+*
+!Cargo.lock
+!Cargo.toml
+!lunch-list-backend
+!lunch-list-frontend
+lunch-list-frontend/pkg
 

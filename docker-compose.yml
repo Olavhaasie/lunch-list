@@ -11,7 +11,7 @@ services:
     networks:
       - backend
 
-  api:
+  lunch-list:
     build: .
     image: docker.pkg.github.com/olavhaasie/lunch-list/lunch-list
     env_file: .env
