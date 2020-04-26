@@ -12,6 +12,7 @@ impl Component for App {
     type Properties = ();
 
     fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+        log::info!("App is being created");
         Self {}
     }
 
