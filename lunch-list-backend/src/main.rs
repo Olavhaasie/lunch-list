@@ -1,5 +1,5 @@
-use actix_files::NamedFile;
-use actix_web::{middleware, web, App, Error, HttpServer};
+use actix_files::{Files, NamedFile};
+use actix_web::{http::ContentEncoding, middleware, web, App, HttpServer};
 use r2d2_redis::{r2d2, RedisConnectionManager};
 
 use std::env;
@@ -11,10 +11,10 @@ use lunch_list_backend::user;
 const ASSETS_DIR: &str = "target/deploy";
 const INDEX_HTML: &str = "index.html";
 
-async fn serve_index_html() -> Result<NamedFile, Error> {
+async fn serve_index_html() -> Result<NamedFile, std::io::Error> {
     let index_file = format!("{}/{}", ASSETS_DIR, INDEX_HTML);
 
-    Ok(NamedFile::open(index_file)?)
+    NamedFile::open(index_file)
 }
 
 #[actix_rt::main]
@@ -33,13 +33,14 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .data(pool.clone())
             .wrap(middleware::Logger::default())
+            .wrap(middleware::Compress::default())
             .service(
                 web::scope("/api")
                     .configure(list::config)
                     .configure(user::config)
                     .default_service(web::route().to(not_found)),
             )
-            .service(actix_files::Files::new("/", ASSETS_DIR).index_file(INDEX_HTML))
+            .service(Files::new("/", ASSETS_DIR).index_file(INDEX_HTML))
             .default_service(web::get().to(serve_index_html))
     })
     .bind(&format!("{}:{}", addr, port))?
