@@ -1,8 +1,9 @@
 use actix_files::{Files, NamedFile};
-use actix_web::{http::ContentEncoding, middleware, web, App, HttpServer};
+use actix_web::{middleware, web, App, HttpServer};
+use clap::Clap;
 use r2d2_redis::{r2d2, RedisConnectionManager};
 
-use std::env;
+use std::io;
 
 use lunch_list_backend::list;
 use lunch_list_backend::not_found;
@@ -10,6 +11,36 @@ use lunch_list_backend::user;
 
 const ASSETS_DIR: &str = "target/deploy";
 const INDEX_HTML: &str = "index.html";
+
+#[derive(Clap)]
+#[clap(
+    version = env!("CARGO_PKG_VERSION"),
+    author = env!("CARGO_PKG_AUTHORS"),
+    about = env!("CARGO_PKG_DESCRIPTION"),
+    setting = clap::AppSettings::ColoredHelp
+)]
+struct Opts {
+    #[clap(
+        short = "a",
+        long = "address",
+        env = "LUNCH_LIST_ADDR",
+        default_value = "localhost"
+    )]
+    address: String,
+    #[clap(
+        short = "p",
+        long = "port",
+        env = "LUNCH_LIST_PORT",
+        default_value = "8080"
+    )]
+    port: u16,
+    #[clap(
+        long = "redis-host",
+        env = "LUNCH_LIST_REDIS",
+        default_value = "localhost"
+    )]
+    redis_host: String,
+}
 
 async fn serve_index_html() -> Result<NamedFile, std::io::Error> {
     let index_file = format!("{}/{}", ASSETS_DIR, INDEX_HTML);
@@ -19,15 +50,12 @@ async fn serve_index_html() -> Result<NamedFile, std::io::Error> {
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
+    let opts = Opts::parse();
+
     std::env::set_var("RUST_LOG", "debug");
     env_logger::init();
 
-    let addr = env::var("LUNCH_LIST_ADDR").unwrap_or_else(|_| "127.0.0.1".to_string());
-    let port = env::var("LUNCH_LIST_PORT").unwrap_or_else(|_| "8080".to_string());
-    let redis_host = env::var("LUNCH_LIST_REDIS").unwrap_or_else(|_| "localhost".to_string());
-
-    let manager = RedisConnectionManager::new(format!("redis://{}", redis_host)).unwrap();
-    let pool = r2d2::Pool::new(manager).unwrap();
+    let pool = build_pool(&opts)?;
 
     HttpServer::new(move || {
         App::new()
@@ -43,7 +71,13 @@ async fn main() -> std::io::Result<()> {
             .service(Files::new("/", ASSETS_DIR).index_file(INDEX_HTML))
             .default_service(web::get().to(serve_index_html))
     })
-    .bind(&format!("{}:{}", addr, port))?
+    .bind((opts.address.as_str(), opts.port))?
     .run()
     .await
+}
+
+fn build_pool(opts: &Opts) -> std::io::Result<r2d2::Pool<RedisConnectionManager>> {
+    let manager = RedisConnectionManager::new(format!("redis://{}/", opts.redis_host))
+        .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
+    r2d2::Pool::new(manager).map_err(|e| io::Error::new(io::ErrorKind::Other, e))
 }

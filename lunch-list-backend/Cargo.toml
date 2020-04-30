@@ -4,6 +4,8 @@ version = "0.1.0"
 authors = ["Olav de Haas <https://github.com/Olavhaasie>"]
 edition = "2018"
 
+description = "A fast and simple web lunch attendance list 📝"
+
 publish = false
 
 [[bin]]
@@ -16,6 +18,7 @@ actix-rt = "1"
 actix-web = "2"
 bcrypt = "0.7"
 chrono = { version = "0.4", features = ["serde"] }
+clap = { git = "https://github.com/clap-rs/clap/" }
 env_logger = "0.7"
 failure = "0.1"
 futures = "0.3"
