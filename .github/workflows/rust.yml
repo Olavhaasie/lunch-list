@@ -18,10 +18,13 @@ jobs:
         profile: minimal
         toolchain: ${{ matrix.release_channel }}
         components: clippy, rustfmt
+        target: wasm32-unknown-unknown
         override: true
-    - name: Build
+    - name: Build backend
       run: cargo build --verbose -p lunch-list-backend
-    - name: Run tests
+    - name: Build frontend
+      run: cargo build --verbose -p lunch-list-frontend --target wasm32-unknown-unknown
+    - name: Run backend tests
       run: cargo test --verbose -p lunch-list-backend
     - name: Check fmt
       run: cargo fmt -- --check
