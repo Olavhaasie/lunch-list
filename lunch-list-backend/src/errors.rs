@@ -3,10 +3,10 @@ use actix_web::{
     http::{header, StatusCode},
     HttpResponse,
 };
-use bb8_redis::redis::RedisError;
 use bcrypt::BcryptError;
 use failure::Fail;
 use jsonwebtoken::errors::Error as JwtError;
+use mobc_redis::redis::RedisError;
 use serde_json::json;
 
 use std::convert::From;
@@ -82,6 +82,15 @@ impl From<BcryptError> for ServiceError {
 impl From<header::ToStrError> for ServiceError {
     fn from(_: header::ToStrError) -> Self {
         Self::InvalidHeader
+    }
+}
+
+impl From<mobc::Error<RedisError>> for ServiceError {
+    fn from(e: mobc::Error<RedisError>) -> Self {
+        match e {
+            mobc::Error::Inner(e) => Self::DatabaseError(e),
+            _ => Self::InternalError,
+        }
     }
 }
 

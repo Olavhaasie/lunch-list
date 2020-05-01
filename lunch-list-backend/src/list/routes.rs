@@ -1,10 +1,9 @@
 use actix_web::{delete, get, put, web, HttpResponse, Responder};
-use bb8_redis::{redis, redis::AsyncCommands};
 use chrono::Datelike;
-use futures::future::join_all;
+use mobc_redis::{redis, redis::AsyncCommands};
 use serde_json::json;
 
-use std::collections::HashMap;
+use std::ops::DerefMut;
 
 use crate::errors::ServiceError;
 use crate::Pool;
@@ -21,11 +20,11 @@ async fn get_list(
     db: web::Data<Pool>,
 ) -> Result<impl Responder, ServiceError> {
     let id = id.into_inner();
-    let mut conn = db.get().await.unwrap().unwrap();
+    let mut conn = db.get().await?;
     redis::pipe()
         .hgetall(&format!("list:{}", id))
         .smembers(&format!("users:{}", id))
-        .query_async(&mut conn)
+        .query_async(conn.deref_mut())
         .await
         .map(|(list, users)| {
             if let Some(list) = List::from_hash(id, list) {
@@ -43,7 +42,7 @@ async fn get_lists(
     _claims: Claims,
     db: web::Data<Pool>,
 ) -> Result<impl Responder, ServiceError> {
-    let mut conn = db.get().await.unwrap().unwrap();
+    let mut conn = db.get().await?;
     let (start, stop) = query.to_range();
     let ids: Vec<usize> = if query.rev() {
         conn.zrange("dates", start as isize, stop as isize).await?
@@ -52,19 +51,11 @@ async fn get_lists(
             .await?
     };
 
-    let futures = ids
-        .into_iter()
-        .map(|id| conn.hgetall(&format!("list:{}", id)));
-    let lists = join_all(futures)
-        .await
-        .into_iter()
-        .collect::<Result<Vec<HashMap<_, _>>, _>>()?;
-    let lists = lists
-        .into_iter()
-        .zip(ids.iter())
-        .map(|(l, id)| List::from_hash(*id, l).unwrap())
-        .collect::<Vec<List>>();
-
+    let mut lists = Vec::new();
+    for id in ids {
+        let list = conn.hgetall(&format!("list:{}", id)).await?;
+        lists.push(List::from_hash(id, list).unwrap())
+    }
     Ok(HttpResponse::Ok().json(json!({ "lists": lists })))
 }
 
@@ -74,13 +65,13 @@ async fn delete_list(
     _claims: Claims,
     db: web::Data<Pool>,
 ) -> Result<impl Responder, ServiceError> {
-    let mut conn = db.get().await.unwrap().unwrap();
+    let mut conn = db.get().await?;
     let id = id.into_inner();
     let (_, _, b): (bool, bool, bool) = redis::pipe()
         .zrem("dates", id)
         .del(&format!("users:{}", id))
         .del(&format!("list:{}", id))
-        .query_async(&mut conn)
+        .query_async(conn.deref_mut())
         .await?;
     if b {
         Ok(HttpResponse::NoContent())
@@ -96,7 +87,7 @@ async fn put_list(
     db: web::Data<Pool>,
 ) -> Result<impl Responder, ServiceError> {
     let days = list.date.num_days_from_ce();
-    let mut conn = db.get().await.unwrap().unwrap();
+    let mut conn = db.get().await?;
     let list_id: Vec<usize> = conn.zrangebyscore("dates", days, days).await?;
     let id: Option<usize> = match list_id.as_slice() {
         [id] => {
@@ -116,7 +107,7 @@ async fn put_list(
                         ],
                     )
                     .zadd("dates", id, days)
-                    .query_async(&mut conn)
+                    .query_async(conn.deref_mut())
                     .await?;
                 Some(id)
             } else {
@@ -134,7 +125,7 @@ async fn put_list(
                     ],
                 )
                 .zadd("dates", id, days)
-                .query_async(&mut conn)
+                .query_async(conn.deref_mut())
                 .await?;
             Some(id)
         }
@@ -155,7 +146,7 @@ async fn add_user(
     db: web::Data<Pool>,
 ) -> Result<impl Responder, ServiceError> {
     let id = id.into_inner();
-    let mut conn = db.get().await.unwrap().unwrap();
+    let mut conn = db.get().await?;
     let added = conn.sadd(&format!("users:{}", id), claims.sub).await?;
     if added {
         Ok(HttpResponse::Created())
@@ -171,7 +162,7 @@ async fn remove_user(
     db: web::Data<Pool>,
 ) -> Result<impl Responder, ServiceError> {
     let id = id.into_inner();
-    let mut conn = db.get().await.unwrap().unwrap();
+    let mut conn = db.get().await?;
     let _: bool = conn.srem(&format!("users:{}", id), claims.sub).await?;
     Ok(HttpResponse::NoContent())
 }

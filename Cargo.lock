@@ -412,29 +412,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7d5ca2cd0adc3f48f9e9ea5a6bbdf9ccc0bfade884847e484d452414c7ccffb3"
 
 [[package]]
-name = "bb8"
-version = "0.4.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "374bba43fc924d90393ee7768e6f75d223a98307a488fe5bc34b66c3e96932a6"
-dependencies = [
- "async-trait",
- "futures",
- "tokio",
-]
-
-[[package]]
-name = "bb8-redis"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4fdd7a02dd9e50518670416e3757d15ebd2959e3dc5daf2fbaecf7c7476d377d"
-dependencies = [
- "async-trait",
- "bb8",
- "futures",
- "redis",
-]
-
-[[package]]
 name = "bcrypt"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -829,6 +806,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7b0a34e53cf6cdcd0178aa573aed466b646eb3db769570841fda0c7ede375a27"
 
 [[package]]
+name = "futures-timer"
+version = "2.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a1de7508b218029b0f01662ed8f61b1c964b3ae99d6f25462d0f55a595109df6"
+
+[[package]]
 name = "futures-util"
 version = "0.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1155,7 +1138,6 @@ dependencies = [
  "actix-files",
  "actix-rt",
  "actix-web",
- "bb8-redis",
  "bcrypt",
  "chrono",
  "clap",
@@ -1164,6 +1146,8 @@ dependencies = [
  "futures",
  "jsonwebtoken",
  "log",
+ "mobc",
+ "mobc-redis",
  "serde",
  "serde_json",
 ]
@@ -1270,6 +1254,29 @@ dependencies = [
  "net2",
  "winapi 0.2.8",
  "ws2_32-sys",
+]
+
+[[package]]
+name = "mobc"
+version = "0.5.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9e595c66c678c9d2a593c17d871d95bc20b39cb4945b6ded9815caee9b67cd41"
+dependencies = [
+ "async-trait",
+ "futures",
+ "futures-timer",
+ "log",
+ "tokio",
+]
+
+[[package]]
+name = "mobc-redis"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c3d7e7246f809813435dac4b22b9566e950b960428e56dc7d1f2fc9cc4a3ce36"
+dependencies = [
+ "mobc",
+ "redis",
 ]
 
 [[package]]

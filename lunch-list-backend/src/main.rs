@@ -1,7 +1,7 @@
 use actix_files::{Files, NamedFile};
 use actix_web::{middleware, web, App, HttpServer};
-use bb8_redis::{bb8, RedisConnectionManager, RedisPool};
 use clap::Clap;
+use mobc_redis::{redis, RedisConnectionManager};
 
 use std::io;
 
@@ -55,7 +55,7 @@ async fn main() -> std::io::Result<()> {
     std::env::set_var("RUST_LOG", "debug");
     env_logger::init();
 
-    let pool = build_pool(&opts).await?;
+    let pool = build_pool(&opts)?;
 
     HttpServer::new(move || {
         App::new()
@@ -76,13 +76,9 @@ async fn main() -> std::io::Result<()> {
     .await
 }
 
-async fn build_pool(opts: &Opts) -> std::io::Result<bb8::Pool<RedisConnectionManager>> {
-    let manager = RedisConnectionManager::new(format!("redis://{}/", opts.redis_host))
+fn build_pool(opts: &Opts) -> std::io::Result<mobc::Pool<RedisConnectionManager>> {
+    let client = redis::Client::open(format!("redis://{}/", opts.redis_host))
         .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
-    RedisPool::new(
-        bb8::Pool::builder()
-            .build(manager)
-            .await
-            .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?,
-    )
+    let manager = RedisConnectionManager::new(client);
+    Ok(mobc::Pool::new(manager))
 }

@@ -16,7 +16,6 @@ path = "src/main.rs"
 actix-files = "0.2"
 actix-rt = "1"
 actix-web = "2"
-bb8-redis = "0.5"
 bcrypt = "0.7"
 chrono = { version = "0.4", features = ["serde"] }
 clap = { git = "https://github.com/clap-rs/clap/" }
@@ -25,6 +24,8 @@ failure = "0.1"
 futures = "0.3"
 jsonwebtoken = "7"
 log = "0.4"
+mobc = "0.5"
+mobc-redis = "0.5"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1"
 
