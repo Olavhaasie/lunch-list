@@ -33,6 +33,8 @@ pub enum ServiceError {
     MissingAuthHeader,
     #[fail(display = "Invalid header value")]
     InvalidHeader,
+    #[fail(display = "Username can only contain alphanumeric characters or whitespaces")]
+    InvalidUsername,
 }
 
 impl ResponseError for ServiceError {
@@ -47,6 +49,7 @@ impl ResponseError for ServiceError {
             Self::UserAlreadyExists { .. } => StatusCode::BAD_REQUEST,
             Self::MissingAuthHeader => StatusCode::UNAUTHORIZED,
             Self::InvalidHeader => StatusCode::BAD_REQUEST,
+            Self::InvalidUsername => StatusCode::BAD_REQUEST,
             _ => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }

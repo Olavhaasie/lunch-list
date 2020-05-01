@@ -15,8 +15,11 @@ pub async fn login(
     login: web::Json<Login>,
     db: web::Data<Pool>,
 ) -> Result<impl Responder, ServiceError> {
+    let login = login.into_inner();
+    if !login.validate() {
+        return Err(ServiceError::InvalidUsername);
+    }
     web::block(move || {
-        let login = login.into_inner();
         let mut conn = db.get().unwrap();
         let id: Option<usize> = conn.hget("users", &login.username)?;
         match id {
