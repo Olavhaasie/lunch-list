@@ -3,10 +3,10 @@ use actix_web::{
     http::{header, StatusCode},
     HttpResponse,
 };
+use bb8_redis::redis::RedisError;
 use bcrypt::BcryptError;
 use failure::Fail;
 use jsonwebtoken::errors::Error as JwtError;
-use r2d2_redis::redis::RedisError;
 use serde_json::json;
 
 use std::convert::From;

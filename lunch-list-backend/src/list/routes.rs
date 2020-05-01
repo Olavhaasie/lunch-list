@@ -1,12 +1,13 @@
 use actix_web::{delete, get, put, web, HttpResponse, Responder};
+use bb8_redis::{redis, redis::AsyncCommands};
 use chrono::Datelike;
-use r2d2_redis::{redis, redis::Commands};
+use futures::future::join_all;
 use serde_json::json;
+
+use std::collections::HashMap;
 
 use crate::errors::ServiceError;
 use crate::Pool;
-
-use std::ops::DerefMut;
 
 use super::list_model::List;
 use super::list_query::ListQuery;
@@ -20,22 +21,20 @@ async fn get_list(
     db: web::Data<Pool>,
 ) -> Result<impl Responder, ServiceError> {
     let id = id.into_inner();
-    web::block(move || {
-        let mut conn = db.get().unwrap();
-        redis::pipe()
-            .hgetall(&format!("list:{}", id))
-            .smembers(&format!("users:{}", id))
-            .query(conn.deref_mut())
-    })
-    .await
-    .map(|(list, users)| {
-        if let Some(list) = List::from_hash(id, list) {
-            HttpResponse::Ok().json(list.with_users(users))
-        } else {
-            HttpResponse::NotFound().finish()
-        }
-    })
-    .map_err(ServiceError::from)
+    let mut conn = db.get().await.unwrap().unwrap();
+    redis::pipe()
+        .hgetall(&format!("list:{}", id))
+        .smembers(&format!("users:{}", id))
+        .query_async(&mut conn)
+        .await
+        .map(|(list, users)| {
+            if let Some(list) = List::from_hash(id, list) {
+                HttpResponse::Ok().json(list.with_users(users))
+            } else {
+                HttpResponse::NotFound().finish()
+            }
+        })
+        .map_err(ServiceError::from)
 }
 
 #[get("/list")]
@@ -44,25 +43,29 @@ async fn get_lists(
     _claims: Claims,
     db: web::Data<Pool>,
 ) -> Result<impl Responder, ServiceError> {
-    web::block(move || {
-        let mut conn = db.get().unwrap();
-        let (start, stop) = query.to_range();
-        let ids: Vec<usize> = if query.rev() {
-            conn.zrange("dates", start as isize, stop as isize)?
-        } else {
-            conn.zrevrange("dates", start as isize, stop as isize)?
-        };
+    let mut conn = db.get().await.unwrap().unwrap();
+    let (start, stop) = query.to_range();
+    let ids: Vec<usize> = if query.rev() {
+        conn.zrange("dates", start as isize, stop as isize).await?
+    } else {
+        conn.zrevrange("dates", start as isize, stop as isize)
+            .await?
+    };
 
-        ids.into_iter()
-            .map(|id| {
-                conn.hgetall(&format!("list:{}", id))
-                    .map(|l| List::from_hash(id, l).unwrap())
-            })
-            .collect::<Result<Vec<List>, _>>()
-    })
-    .await
-    .map(|lists: Vec<List>| HttpResponse::Ok().json(json!({ "lists": lists })))
-    .map_err(ServiceError::from)
+    let futures = ids
+        .into_iter()
+        .map(|id| conn.hgetall(&format!("list:{}", id)));
+    let lists = join_all(futures)
+        .await
+        .into_iter()
+        .collect::<Result<Vec<HashMap<_, _>>, _>>()?;
+    let lists = lists
+        .into_iter()
+        .zip(ids.iter())
+        .map(|(l, id)| List::from_hash(*id, l).unwrap())
+        .collect::<Vec<List>>();
+
+    Ok(HttpResponse::Ok().json(json!({ "lists": lists })))
 }
 
 #[delete("/list/{id}")]
@@ -71,24 +74,19 @@ async fn delete_list(
     _claims: Claims,
     db: web::Data<Pool>,
 ) -> Result<impl Responder, ServiceError> {
-    web::block(move || {
-        let mut conn = db.get().unwrap();
-        let id = id.into_inner();
-        redis::pipe()
-            .zrem("dates", id)
-            .del(&format!("users:{}", id))
-            .del(&format!("list:{}", id))
-            .query(conn.deref_mut())
-    })
-    .await
-    .map(|(_, _, b): (bool, bool, bool)| {
-        if b {
-            HttpResponse::NoContent()
-        } else {
-            HttpResponse::NotFound()
-        }
-    })
-    .map_err(ServiceError::from)
+    let mut conn = db.get().await.unwrap().unwrap();
+    let id = id.into_inner();
+    let (_, _, b): (bool, bool, bool) = redis::pipe()
+        .zrem("dates", id)
+        .del(&format!("users:{}", id))
+        .del(&format!("list:{}", id))
+        .query_async(&mut conn)
+        .await?;
+    if b {
+        Ok(HttpResponse::NoContent())
+    } else {
+        Ok(HttpResponse::NotFound())
+    }
 }
 
 #[put("/list")]
@@ -97,36 +95,20 @@ async fn put_list(
     _claims: Claims,
     db: web::Data<Pool>,
 ) -> Result<impl Responder, ServiceError> {
-    web::block(move || {
-        let mut conn = db.get().unwrap();
-        redis::transaction(conn.deref_mut(), &["dates"], |conn, pipe| {
-            let days = list.date.num_days_from_ce();
-            let list_id: Vec<usize> = conn.zrangebyscore("dates", days, days)?;
-            match list_id.as_slice() {
-                [id] => {
-                    let list_type = conn
-                        .hget::<&str, &str, String>(&format!("list:{}", id), "type")?
-                        .parse::<ListType>()
-                        .unwrap();
-                    if list_type == list.list_type {
-                        Ok(Some(None))
-                    } else {
-                        let id: usize = conn.incr("next_list_id", 1)?;
-                        pipe.hset_multiple(
-                            &format!("list:{}", id),
-                            &[
-                                ("type", list.list_type.to_string()),
-                                ("date", list.date.to_string()),
-                            ],
-                        )
-                        .zadd("dates", id, days)
-                        .query(conn)?;
-                        Ok(Some(Some(id)))
-                    }
-                }
-                [] => {
-                    let id: usize = conn.incr("next_list_id", 1)?;
-                    pipe.hset_multiple(
+    let days = list.date.num_days_from_ce();
+    let mut conn = db.get().await.unwrap().unwrap();
+    let list_id: Vec<usize> = conn.zrangebyscore("dates", days, days).await?;
+    let id: Option<usize> = match list_id.as_slice() {
+        [id] => {
+            let list_type = conn
+                .hget::<&str, &str, String>(&format!("list:{}", id), "type")
+                .await?
+                .parse::<ListType>()
+                .unwrap();
+            if list_type != list.list_type {
+                let id: usize = conn.incr("next_list_id", 1 as usize).await?;
+                redis::pipe()
+                    .hset_multiple(
                         &format!("list:{}", id),
                         &[
                             ("type", list.list_type.to_string()),
@@ -134,22 +116,36 @@ async fn put_list(
                         ],
                     )
                     .zadd("dates", id, days)
-                    .query(conn)?;
-                    Ok(Some(Some(id)))
-                }
-                _ => Ok(Some(None)),
+                    .query_async(&mut conn)
+                    .await?;
+                Some(id)
+            } else {
+                None
             }
-        })
-    })
-    .await
-    .map(|id| {
-        if let Some(id) = id {
-            HttpResponse::Created().json(json!({ "id": id }))
-        } else {
-            HttpResponse::NoContent().finish()
         }
-    })
-    .map_err(ServiceError::from)
+        [] => {
+            let id: usize = conn.incr("next_list_id", 1 as usize).await?;
+            redis::pipe()
+                .hset_multiple(
+                    &format!("list:{}", id),
+                    &[
+                        ("type", list.list_type.to_string()),
+                        ("date", list.date.to_string()),
+                    ],
+                )
+                .zadd("dates", id, days)
+                .query_async(&mut conn)
+                .await?;
+            Some(id)
+        }
+        _ => None,
+    };
+
+    if let Some(id) = id {
+        Ok(HttpResponse::Created().json(json!({ "id": id })))
+    } else {
+        Ok(HttpResponse::NoContent().finish())
+    }
 }
 
 #[put("/list/{id}/user")]
@@ -159,19 +155,13 @@ async fn add_user(
     db: web::Data<Pool>,
 ) -> Result<impl Responder, ServiceError> {
     let id = id.into_inner();
-    web::block(move || {
-        let mut conn = db.get().unwrap();
-        conn.sadd(&format!("users:{}", id), claims.sub)
-    })
-    .await
-    .map(|added| {
-        if added {
-            HttpResponse::Created()
-        } else {
-            HttpResponse::NoContent()
-        }
-    })
-    .map_err(ServiceError::from)
+    let mut conn = db.get().await.unwrap().unwrap();
+    let added = conn.sadd(&format!("users:{}", id), claims.sub).await?;
+    if added {
+        Ok(HttpResponse::Created())
+    } else {
+        Ok(HttpResponse::NoContent())
+    }
 }
 
 #[delete("/list/{id}/user")]
@@ -181,11 +171,7 @@ async fn remove_user(
     db: web::Data<Pool>,
 ) -> Result<impl Responder, ServiceError> {
     let id = id.into_inner();
-    web::block(move || {
-        let mut conn = db.get().unwrap();
-        conn.srem(&format!("users:{}", id), claims.sub)
-    })
-    .await
-    .map(|_: bool| HttpResponse::NoContent())
-    .map_err(ServiceError::from)
+    let mut conn = db.get().await.unwrap().unwrap();
+    let _: bool = conn.srem(&format!("users:{}", id), claims.sub).await?;
+    Ok(HttpResponse::NoContent())
 }
