@@ -30,7 +30,7 @@ impl Component for App {
                 render = Router::render(|switch: AppRoute| {
                     match switch {
                         AppRoute::Login => html!{<LoginComponent/>},
-                        AppRoute::Lists => html!{"switch"},
+                        AppRoute::Dashboard => html!{"dashboard"},
                         AppRoute::List { id } => html!{ id },
                         AppRoute::User => html!{"user"},
                     }

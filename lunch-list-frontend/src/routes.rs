@@ -4,8 +4,8 @@ use yew_router::Switch;
 pub enum AppRoute {
     #[to = "/login"]
     Login,
-    #[to = "/lists"]
-    Lists,
+    #[to = "/dashboard"]
+    Dashboard,
     #[to = "/list/{id}"]
     List { id: usize },
     #[to = "/user"]

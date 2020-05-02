@@ -2,6 +2,7 @@
 
 mod app;
 mod login;
+mod models;
 mod routes;
 
 use wasm_bindgen::prelude::wasm_bindgen;
