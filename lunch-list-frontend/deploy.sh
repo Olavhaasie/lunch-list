@@ -9,5 +9,5 @@ wasm-pack build --target web
 rollup ./main.js --format iife --file ./pkg/bundle.js
 
 mkdir -p "$deploy_dir"
-cp -r index.html main.js pkg "$deploy_dir"
+cp -r index.html style.css pkg "$deploy_dir"
 

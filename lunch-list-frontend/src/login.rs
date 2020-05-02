@@ -70,7 +70,6 @@ impl Component for LoginComponent {
             router,
             storage: StorageService::new(Area::Local).unwrap(),
             fetch: FetchService::new(),
-            is_fetching: Default::default(),
             fetch_task: Default::default(),
             name_input: Default::default(),
             password_input: Default::default(),
@@ -113,17 +112,17 @@ impl Component for LoginComponent {
 
     fn view(&self) -> Html {
         html! {
-            <div>
-                <label for="username">{ "Username" }</label>
+            <div class="login">
+                <label class="login-label" for="username">{ "Username" }</label>
                 <br></br>
-                <input ref=self.name_input.clone() type="text" name="username"/>
+                <input class="input" ref=self.name_input.clone() type="text" name="username"/>
                 <br></br>
-                <label for="password">{ "Password" }</label>
+                <label class="login-label" for="password">{ "Password" }</label>
                 <br></br>
-                <input ref=self.password_input.clone() type="password" name="password"/>
+                <input class="input" ref=self.password_input.clone() type="password" name="password"/>
                 <br></br>
-                <button onclick=self.link.callback(|_| Msg::LoginTask)>
-                    { "➡️" }
+                <button class ="login-button" onclick=self.link.callback(|_| Msg::LoginTask)>
+                    { "Login" }
                 </button>
             </div>
         }
