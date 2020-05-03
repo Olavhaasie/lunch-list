@@ -41,7 +41,9 @@ pub enum ServiceError {
 impl ResponseError for ServiceError {
     fn error_response(&self) -> HttpResponse {
         let json = match self {
-            Self::ValidatorError { errors } => json!({ "error": self.to_string(), "errors": errors }),
+            Self::ValidatorError { errors } => {
+                json!({ "error": self.to_string(), "errors": errors })
+            }
             _ => json!({ "error": self.to_string()}),
         };
         HttpResponse::build(self.status_code()).json(json)

@@ -147,11 +147,18 @@ async fn add_user(
 ) -> Result<impl Responder, ServiceError> {
     let id = id.into_inner();
     let mut conn = db.get().await?;
-    let added = conn.sadd(&format!("users:{}", id), claims.sub).await?;
-    if added {
-        Ok(HttpResponse::Created())
+
+    let exists = conn.exists(&format!("list:{}", id)).await?;
+
+    if exists {
+        let added = conn.sadd(&format!("users:{}", id), claims.sub).await?;
+        if added {
+            Ok(HttpResponse::Created())
+        } else {
+            Ok(HttpResponse::NoContent())
+        }
     } else {
-        Ok(HttpResponse::NoContent())
+        Ok(HttpResponse::NotFound())
     }
 }
 
@@ -163,6 +170,13 @@ async fn remove_user(
 ) -> Result<impl Responder, ServiceError> {
     let id = id.into_inner();
     let mut conn = db.get().await?;
-    let _: bool = conn.srem(&format!("users:{}", id), claims.sub).await?;
-    Ok(HttpResponse::NoContent())
+
+    let exists = conn.exists(&format!("list:{}", id)).await?;
+
+    if exists {
+        conn.srem(&format!("users:{}", id), claims.sub).await?;
+        Ok(HttpResponse::NoContent())
+    } else {
+        Ok(HttpResponse::NotFound())
+    }
 }
