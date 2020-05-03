@@ -2,6 +2,7 @@ use actix_web::{get, post, web, HttpResponse, Responder};
 use jsonwebtoken::{encode, EncodingKey, Header};
 use mobc_redis::{redis, redis::AsyncCommands};
 use serde_json::json;
+use validator::Validate;
 
 use std::ops::DerefMut;
 
@@ -16,9 +17,6 @@ pub async fn login(
     db: web::Data<Pool>,
 ) -> Result<impl Responder, ServiceError> {
     let login = login.into_inner();
-    if !login.validate() {
-        return Err(ServiceError::InvalidUsername);
-    }
     let mut conn = db.get().await?;
     let id: Option<usize> = conn.hget("users", &login.username).await?;
     match id {
@@ -48,6 +46,8 @@ pub async fn create_user(
     db: web::Data<Pool>,
 ) -> Result<impl Responder, ServiceError> {
     let user = user.into_inner();
+    user.validate()?;
+
     let mut conn = db.get().await?;
     let exists: bool = conn.hexists("users", &user.username).await?;
     if exists {

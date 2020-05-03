@@ -1,20 +1,48 @@
 use bcrypt::BcryptResult;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer};
+use validator::{Validate, ValidationError};
+use validator_derive::Validate;
 
-#[derive(Debug, Deserialize, Serialize)]
+use std::borrow::Cow;
+use std::collections::HashMap;
+
+#[derive(Debug, Deserialize, Validate)]
 pub struct Login {
+    #[serde(deserialize_with = "deserialize_username")]
+    #[validate(
+        length(min = 1, message = "Username cannot be empty"),
+        custom = "validate_username"
+    )]
     pub username: String,
+    #[validate(length(min = 1, message = "Password cannot be empty"))]
     pub password: String,
 }
 
-impl Login {
-    /// Returns true when the username is a valid username, false otherwise.
-    pub fn validate(&self) -> bool {
-        self.username
-            .chars()
-            .all(|c| c.is_alphanumeric() || c == ' ')
-    }
+fn deserialize_username<'de, D>(d: D) -> Result<String, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let username = String::deserialize(d)?;
+    Ok(username.trim().to_string())
+}
 
+/// Returns true when the username is a valid username, false otherwise.
+fn validate_username(username: &String) -> Result<(), ValidationError> {
+    let valid = username.chars().all(|c| c.is_alphanumeric() || c == ' ');
+    if valid {
+        Ok(())
+    } else {
+        Err(ValidationError {
+            code: Cow::from("username_validation"),
+            message: Some(Cow::from(
+                "Username can only contain alphanumeric characters and spaces",
+            )),
+            params: HashMap::new(),
+        })
+    }
+}
+
+impl Login {
     /// Returns true when the hash can be verified, false otherwise.
     pub fn verify_hash(&self, hash: &str) -> BcryptResult<bool> {
         bcrypt::verify(self.password.as_bytes(), hash)

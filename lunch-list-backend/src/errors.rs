@@ -9,6 +9,7 @@ use jsonwebtoken::errors::Error as JwtError;
 use mobc_redis::redis::RedisError;
 use serde_json::json;
 
+use std::collections::HashMap;
 use std::convert::From;
 use std::env;
 use std::fmt;
@@ -33,13 +34,17 @@ pub enum ServiceError {
     MissingAuthHeader,
     #[fail(display = "Invalid header value")]
     InvalidHeader,
-    #[fail(display = "Username can only contain alphanumeric characters or whitespaces")]
-    InvalidUsername,
+    #[fail(display = "Invalid input")]
+    ValidatorError { errors: HashMap<String, String> },
 }
 
 impl ResponseError for ServiceError {
     fn error_response(&self) -> HttpResponse {
-        HttpResponse::build(self.status_code()).json(json!({ "error": self.to_string()}))
+        let json = match self {
+            Self::ValidatorError { errors } => json!({ "error": self.to_string(), "errors": errors }),
+            _ => json!({ "error": self.to_string()}),
+        };
+        HttpResponse::build(self.status_code()).json(json)
     }
 
     fn status_code(&self) -> StatusCode {
@@ -49,7 +54,7 @@ impl ResponseError for ServiceError {
             Self::UserAlreadyExists { .. } => StatusCode::BAD_REQUEST,
             Self::MissingAuthHeader => StatusCode::UNAUTHORIZED,
             Self::InvalidHeader => StatusCode::BAD_REQUEST,
-            Self::InvalidUsername => StatusCode::BAD_REQUEST,
+            Self::ValidatorError { .. } => StatusCode::BAD_REQUEST,
             _ => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
@@ -90,6 +95,26 @@ impl From<mobc::Error<RedisError>> for ServiceError {
         match e {
             mobc::Error::Inner(e) => Self::DatabaseError(e),
             _ => Self::InternalError,
+        }
+    }
+}
+
+impl From<validator::ValidationErrors> for ServiceError {
+    fn from(err: validator::ValidationErrors) -> Self {
+        Self::ValidatorError {
+            errors: err
+                .field_errors()
+                .iter()
+                .map(|(field, errors)| {
+                    let errors = errors
+                        .into_iter()
+                        .filter_map(|e| e.message.as_ref())
+                        .map(|c| c.to_string())
+                        .collect::<Vec<String>>()
+                        .join(", ");
+                    (field.to_string(), errors)
+                })
+                .collect(),
         }
     }
 }
