@@ -27,7 +27,7 @@ where
 }
 
 /// Returns true when the username is a valid username, false otherwise.
-fn validate_username(username: &String) -> Result<(), ValidationError> {
+fn validate_username(username: &str) -> Result<(), ValidationError> {
     let valid = username.chars().all(|c| c.is_alphanumeric() || c == ' ');
     if valid {
         Ok(())
@@ -63,7 +63,16 @@ mod tests {
             username: "Sir User".to_string(),
             password: "hunter2".to_string(),
         };
-        assert!(login.validate());
+        assert!(login.validate().is_ok());
+    }
+
+    #[test]
+    fn test_empty_username() {
+        let login = Login {
+            username: "".to_string(),
+            password: "hunter2".to_string(),
+        };
+        assert!(login.validate().is_err());
     }
 
     #[test]
@@ -72,6 +81,6 @@ mod tests {
             username: "user#123?<>".to_string(),
             password: "hunter2".to_string(),
         };
-        assert!(!login.validate());
+        assert!(login.validate().is_err());
     }
 }

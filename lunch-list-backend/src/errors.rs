@@ -35,15 +35,13 @@ pub enum ServiceError {
     #[fail(display = "Invalid header value")]
     InvalidHeader,
     #[fail(display = "Invalid input")]
-    ValidatorError { errors: HashMap<String, String> },
+    ValidatorError(HashMap<String, String>),
 }
 
 impl ResponseError for ServiceError {
     fn error_response(&self) -> HttpResponse {
         let json = match self {
-            Self::ValidatorError { errors } => {
-                json!({ "error": self.to_string(), "errors": errors })
-            }
+            Self::ValidatorError(errors) => json!({ "error": self.to_string(), "errors": errors }),
             _ => json!({ "error": self.to_string()}),
         };
         HttpResponse::build(self.status_code()).json(json)
@@ -103,21 +101,20 @@ impl From<mobc::Error<RedisError>> for ServiceError {
 
 impl From<validator::ValidationErrors> for ServiceError {
     fn from(err: validator::ValidationErrors) -> Self {
-        Self::ValidatorError {
-            errors: err
-                .field_errors()
+        Self::ValidatorError(
+            err.field_errors()
                 .iter()
                 .map(|(field, errors)| {
                     let errors = errors
-                        .into_iter()
+                        .iter()
                         .filter_map(|e| e.message.as_ref())
                         .map(|c| c.to_string())
                         .collect::<Vec<String>>()
                         .join(", ");
-                    (field.to_string(), errors)
+                    ((*field).to_string(), errors)
                 })
                 .collect(),
-        }
+        )
     }
 }
 
