@@ -9,7 +9,7 @@ use lunch_list_backend::list;
 use lunch_list_backend::not_found;
 use lunch_list_backend::user;
 
-const ASSETS_DIR: &str = "target/deploy";
+const ASSETS_DIR: &str = "static";
 const INDEX_HTML: &str = "index.html";
 
 #[derive(Clap)]

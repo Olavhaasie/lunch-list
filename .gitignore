@@ -1,5 +1,6 @@
 /target
 /redis-data
+/static
 dump.rdb
 **/*.rs.bk
 bin/

@@ -2,12 +2,10 @@
 
 set -e
 
-deploy_dir="../target/deploy"
-
 wasm-pack build --target web
 # This step is necessary until wasm-pack has an option for this
 rollup ./main.js --format iife --file ./pkg/bundle.js
 
-mkdir -p "$deploy_dir"
-cp -r index.html style.css pkg "$deploy_dir"
+cp -r static .. 
+cp -r pkg ../static
 

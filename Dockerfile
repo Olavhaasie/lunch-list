@@ -35,12 +35,14 @@ FROM node AS packager
 
 WORKDIR /usr/src/packager
 
-ENV DEPLOY_DIR /usr/src/deploy
+ENV DEPLOY_DIR /usr/src/static
 
 RUN npm install --global rollup babel-minify
 
 COPY --from=frontend-builder \
-        /usr/src/lunch-list/lunch-list-frontend/index.html \
+        /usr/src/lunch-list/lunch-list-frontend/static \
+        /usr/src/static/
+COPY --from=frontend-builder \
         /usr/src/lunch-list/lunch-list-frontend/main.js \
         /usr/src/packager/
 COPY --from=frontend-builder \
@@ -50,7 +52,6 @@ COPY --from=frontend-builder \
 RUN rollup ./main.js --format iife --file ./pkg/bundle.js; \
     minify pkg/bundle.js -o bundle.minified.js; \
     mkdir -p $DEPLOY_DIR/pkg; \
-    cp index.html $DEPLOY_DIR; \
     cp bundle.minified.js $DEPLOY_DIR/pkg/bundle.js; \
     cp pkg/lunch_list_frontend_bg.wasm $DEPLOY_DIR/pkg
 
@@ -67,7 +68,7 @@ ENV LUNCH_LIST_REDIS $redis_host
 EXPOSE $port/tcp
 
 COPY --from=backend-builder /usr/local/cargo/bin/ll /usr/local/bin/ll
-COPY --from=packager /usr/src/deploy target/deploy/
+COPY --from=packager /usr/src/static static/
 
 CMD ["ll"]
 
