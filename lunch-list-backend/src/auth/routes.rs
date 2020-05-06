@@ -1,12 +1,11 @@
 use actix_web::{post, web, HttpResponse, Responder};
-use jsonwebtoken::{encode, EncodingKey, Header};
 use mobc_redis::{redis, redis::AsyncCommands};
 use serde_json::json;
 use validator::Validate;
 
 use std::ops::DerefMut;
 
-use super::{login::Login, Claims};
+use super::{claims::get_token_pair, login::Login};
 use crate::errors::ServiceError;
 use crate::Pool;
 
@@ -22,15 +21,9 @@ pub async fn login(
         Some(id) => {
             let password: String = conn.hget(&format!("user:{}", id), "password").await?;
             if login.verify_hash(&password)? {
-                let claims = Claims::new(login.username, id);
-                let secret = std::env::var("LUNCH_LIST_SECRET")?;
-                let token = encode(
-                    &Header::default(),
-                    &claims,
-                    &EncodingKey::from_secret(secret.as_bytes()),
-                )
-                .map_err(ServiceError::from)?;
-                Ok(HttpResponse::Ok().json(json!({ "token": token })))
+                let (access_token, refresh_token) = get_token_pair(id, login.username)?;
+                Ok(HttpResponse::Ok()
+                    .json(json!({ "access_token": access_token, "refresh_token": refresh_token })))
             } else {
                 Err(ServiceError::Unauthorized)
             }
