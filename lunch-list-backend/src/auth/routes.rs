@@ -12,6 +12,7 @@ use std::ops::DerefMut;
 use super::{
     claims::{decode, get_token_pair, RefreshClaims},
     login::Login,
+    logout::LogoutRequest,
 };
 use crate::errors::ServiceError;
 use crate::Pool;
@@ -89,6 +90,33 @@ pub async fn refresh(
     Ok(HttpResponse::Ok()
         .cookie(refresh_cookie)
         .json(json!({ "token": access_token })))
+}
+
+#[post("/logout")]
+pub async fn logout(
+    req: HttpRequest,
+    query: web::Query<LogoutRequest>,
+    db: web::Data<Pool>,
+) -> Result<impl Responder, ServiceError> {
+    let refresh_cookie = req
+        .cookie("refresh_token")
+        .ok_or(ServiceError::Unauthorized)?;
+    let claims = decode::<RefreshClaims>(refresh_cookie.value())?;
+
+    let mut conn = db.get().await?;
+
+    if query.all {
+        conn.del(&format!("refresh_tokens:{}", claims.sub)).await?;
+    } else {
+        let token = refresh_cookie.value();
+        let digest = Hasher::digest(token.as_bytes());
+        conn.srem(&format!("refresh_tokens:{}", claims.sub), digest.as_slice())
+            .await?;
+    }
+
+    Ok(HttpResponse::NoContent()
+        .del_cookie(&refresh_cookie)
+        .finish())
 }
 
 #[post("/signup")]
