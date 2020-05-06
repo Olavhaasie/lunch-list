@@ -67,7 +67,7 @@ fn encode<T: Serialize>(claims: &T) -> Result<String, ServiceError> {
     jsonwebtoken::encode(&Header::default(), claims, &encoding_key).map_err(ServiceError::from)
 }
 
-fn decode<T: DeserializeOwned>(token: &str) -> Result<T, ServiceError> {
+pub fn decode<T: DeserializeOwned>(token: &str) -> Result<T, ServiceError> {
     let secret = std::env::var("LUNCH_LIST_SECRET")?;
     let decoding_key = DecodingKey::from_secret(secret.as_bytes());
     let validation = Validation {
@@ -93,24 +93,6 @@ fn get_bearer_token(headers: &HeaderMap) -> Result<String, ServiceError> {
 }
 
 impl FromRequest for Claims {
-    type Error = ServiceError;
-    type Future = Ready<Result<Self, Self::Error>>;
-    type Config = ();
-
-    fn from_request(req: &HttpRequest, _: &mut dev::Payload) -> Self::Future {
-        let token = match get_bearer_token(req.headers()) {
-            Ok(token) => token,
-            Err(e) => return err(e),
-        };
-        let result = decode::<Self>(&token);
-        match result {
-            Ok(claims) => ok(claims),
-            Err(e) => err(e),
-        }
-    }
-}
-
-impl FromRequest for RefreshClaims {
     type Error = ServiceError;
     type Future = Ready<Result<Self, Self::Error>>;
     type Config = ();

@@ -17,8 +17,10 @@ actix-files = "0.2"
 actix-rt = "1"
 actix-web = "2"
 bcrypt = "0.7"
+blake2 = "0.8"
 chrono = { version = "0.4", features = ["serde"] }
 clap = { git = "https://github.com/clap-rs/clap/" }
+digest = "0.8"
 env_logger = "0.7"
 failure = "0.1"
 futures = "0.3"

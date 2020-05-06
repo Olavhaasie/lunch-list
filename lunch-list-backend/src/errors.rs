@@ -36,6 +36,8 @@ pub enum ServiceError {
     InvalidHeader,
     #[fail(display = "Invalid input")]
     ValidatorError(HashMap<String, String>),
+    #[fail(display = "Re-using refresh token")]
+    InvalidRefreshToken,
 }
 
 impl ResponseError for ServiceError {
@@ -55,6 +57,7 @@ impl ResponseError for ServiceError {
             Self::MissingAuthHeader => StatusCode::UNAUTHORIZED,
             Self::InvalidHeader => StatusCode::BAD_REQUEST,
             Self::ValidatorError { .. } => StatusCode::BAD_REQUEST,
+            Self::InvalidRefreshToken => StatusCode::UNAUTHORIZED,
             _ => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }

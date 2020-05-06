@@ -1,13 +1,19 @@
-use actix_web::{post, web, HttpResponse, Responder};
+use actix_web::{get, http::Cookie, post, web, HttpMessage, HttpRequest, HttpResponse, Responder};
+use digest::Digest;
 use mobc_redis::{redis, redis::AsyncCommands};
 use serde_json::json;
 use validator::Validate;
 
 use std::ops::DerefMut;
 
-use super::{claims::get_token_pair, login::Login};
+use super::{
+    claims::{decode, get_token_pair, RefreshClaims},
+    login::Login,
+};
 use crate::errors::ServiceError;
 use crate::Pool;
+
+type Hasher = blake2::Blake2b;
 
 #[post("/login")]
 pub async fn login(
@@ -22,14 +28,58 @@ pub async fn login(
             let password: String = conn.hget(&format!("user:{}", id), "password").await?;
             if login.verify_hash(&password)? {
                 let (access_token, refresh_token) = get_token_pair(id, login.username)?;
+                let digest = Hasher::digest(refresh_token.as_bytes());
+
+                conn.sadd(&format!("refresh_tokens:{}", id), digest.as_slice())
+                    .await?;
+
+                let refresh_cookie = Cookie::build("refresh_token", refresh_token)
+                    .http_only(true)
+                    .finish();
                 Ok(HttpResponse::Ok()
-                    .json(json!({ "access_token": access_token, "refresh_token": refresh_token })))
+                    .cookie(refresh_cookie)
+                    .json(json!({ "token": access_token })))
             } else {
                 Err(ServiceError::Unauthorized)
             }
         }
         None => Err(ServiceError::Unauthorized),
     }
+}
+
+#[get("/refresh")]
+pub async fn refresh(
+    req: HttpRequest,
+    db: web::Data<Pool>,
+) -> Result<impl Responder, ServiceError> {
+    let token = req
+        .cookie("refresh_token")
+        .map(|c| c.value().to_string())
+        .ok_or(ServiceError::Unauthorized)?;
+    let claims = decode::<RefreshClaims>(&token)?;
+
+    let mut conn = db.get().await?;
+    let digest = Hasher::digest(token.as_bytes());
+    let valid: bool = conn
+        .srem(&format!("refresh_tokens:{}", claims.sub), digest.as_slice())
+        .await?;
+    if !valid {
+        conn.del(&format!("refresh_tokens:{}", claims.sub)).await?;
+        return Err(ServiceError::InvalidRefreshToken);
+    }
+
+    let name = conn
+        .hget(&format!("user:{}", claims.sub), "username")
+        .await?;
+
+    let (access_token, refresh_token) = get_token_pair(claims.sub, name)?;
+
+    let refresh_cookie = Cookie::build("refresh_token", refresh_token)
+        .http_only(true)
+        .finish();
+    Ok(HttpResponse::Ok()
+        .cookie(refresh_cookie)
+        .json(json!({ "token": access_token })))
 }
 
 #[post("/signup")]
