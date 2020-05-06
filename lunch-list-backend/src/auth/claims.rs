@@ -8,20 +8,27 @@ use std::env;
 
 use crate::errors::ServiceError;
 
+const TOKEN_ISSUER: &str = "lunch-list";
+
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Claims {
-    pub sub: String,
     exp: usize,
-    pub user_id: usize,
+    iat: usize,
+    iss: String,
+    pub sub: String,
+    pub uid: usize,
 }
 
 impl Claims {
     pub fn new(username: String, id: usize) -> Self {
-        let date = Utc::now() + Duration::hours(1);
+        let now = Utc::now();
+        let exp = now + Duration::hours(1);
         Self {
+            exp: exp.timestamp() as usize,
+            iat: now.timestamp() as usize,
+            iss: TOKEN_ISSUER.to_string(),
             sub: username,
-            exp: date.timestamp() as usize,
-            user_id: id,
+            uid: id,
         }
     }
 }
@@ -49,7 +56,10 @@ impl FromRequest for Claims {
                 let result = decode::<Claims>(
                     token,
                     &DecodingKey::from_secret(secret.as_bytes()),
-                    &Validation::default(),
+                    &Validation {
+                        iss: Some(TOKEN_ISSUER.to_string()),
+                        ..Default::default()
+                    },
                 );
                 match result {
                     Ok(token_data) => ok(token_data.claims),
