@@ -1,7 +1,7 @@
 use actix_web::{web::HttpResponse, Responder};
 use serde_json::json;
 
-mod auth;
+pub mod auth;
 mod errors;
 pub mod list;
 pub mod user;

@@ -5,6 +5,7 @@ use mobc_redis::{redis, RedisConnectionManager};
 
 use std::io;
 
+use lunch_list_backend::auth;
 use lunch_list_backend::list;
 use lunch_list_backend::not_found;
 use lunch_list_backend::user;
@@ -64,6 +65,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(middleware::Compress::default())
             .service(
                 web::scope("/api")
+                    .configure(auth::config)
                     .configure(list::config)
                     .configure(user::config)
                     .default_service(web::route().to(not_found)),
