@@ -50,7 +50,7 @@ impl LoginComponent {
                         Msg::ServerError
                     }
                 });
-        let request = Request::post("http://localhost:8080/api/user/login")
+        let request = Request::post("http://localhost:8080/api/auth/login")
             .header("content-type", "application/json")
             .body(Json(&req))
             .unwrap();

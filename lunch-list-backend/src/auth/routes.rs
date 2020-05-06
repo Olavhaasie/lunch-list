@@ -1,4 +1,7 @@
-use actix_web::{get, http::Cookie, post, web, HttpMessage, HttpRequest, HttpResponse, Responder};
+use actix_web::{
+    cookie::{Cookie, SameSite},
+    get, post, web, HttpMessage, HttpRequest, HttpResponse, Responder,
+};
 use digest::Digest;
 use mobc_redis::{redis, redis::AsyncCommands};
 use serde_json::json;
@@ -35,6 +38,7 @@ pub async fn login(
 
                 let refresh_cookie = Cookie::build("refresh_token", refresh_token)
                     .http_only(true)
+                    .same_site(SameSite::Strict)
                     .finish();
                 Ok(HttpResponse::Ok()
                     .cookie(refresh_cookie)
@@ -74,8 +78,13 @@ pub async fn refresh(
 
     let (access_token, refresh_token) = get_token_pair(claims.sub, name)?;
 
+    let digest = Hasher::digest(refresh_token.as_bytes());
+    conn.sadd(&format!("refresh_tokens:{}", claims.sub), digest.as_slice())
+        .await?;
+
     let refresh_cookie = Cookie::build("refresh_token", refresh_token)
         .http_only(true)
+        .same_site(SameSite::Strict)
         .finish();
     Ok(HttpResponse::Ok()
         .cookie(refresh_cookie)
