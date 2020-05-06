@@ -10,7 +10,7 @@ use super::{login::Login, Claims};
 use crate::errors::ServiceError;
 use crate::Pool;
 
-#[post("/auth/login")]
+#[post("/login")]
 pub async fn login(
     login: web::Json<Login>,
     db: web::Data<Pool>,
@@ -39,7 +39,7 @@ pub async fn login(
     }
 }
 
-#[post("/auth/signup")]
+#[post("/signup")]
 pub async fn signup(
     user: web::Json<Login>,
     db: web::Data<Pool>,

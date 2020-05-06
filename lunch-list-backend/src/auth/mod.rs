@@ -7,5 +7,9 @@ mod routes;
 pub use claims::Claims;
 
 pub fn config(cfg: &mut web::ServiceConfig) {
-    cfg.service(routes::login).service(routes::signup);
+    cfg.service(
+        web::scope("/auth")
+            .service(routes::login)
+            .service(routes::signup),
+    );
 }

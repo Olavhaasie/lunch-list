@@ -6,10 +6,13 @@ mod list_type;
 mod routes;
 
 pub fn config(cfg: &mut web::ServiceConfig) {
-    cfg.service(routes::get_list)
-        .service(routes::get_lists)
-        .service(routes::delete_list)
-        .service(routes::put_list)
-        .service(routes::add_user)
-        .service(routes::remove_user);
+    cfg.service(
+        web::scope("/list")
+            .service(routes::get_list)
+            .service(routes::get_lists)
+            .service(routes::delete_list)
+            .service(routes::put_list)
+            .service(routes::add_user)
+            .service(routes::remove_user),
+    );
 }

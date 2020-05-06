@@ -13,7 +13,7 @@ use super::list_query::ListQuery;
 use super::list_type::ListType;
 use crate::auth::Claims;
 
-#[get("/list/{id}")]
+#[get("/{id}")]
 async fn get_list(
     id: web::Path<usize>,
     _claims: Claims,
@@ -36,7 +36,7 @@ async fn get_list(
         .map_err(ServiceError::from)
 }
 
-#[get("/list")]
+#[get("")]
 async fn get_lists(
     query: web::Query<ListQuery>,
     _claims: Claims,
@@ -59,7 +59,7 @@ async fn get_lists(
     Ok(HttpResponse::Ok().json(json!({ "lists": lists })))
 }
 
-#[delete("/list/{id}")]
+#[delete("/{id}")]
 async fn delete_list(
     id: web::Path<usize>,
     _claims: Claims,
@@ -80,7 +80,7 @@ async fn delete_list(
     }
 }
 
-#[put("/list")]
+#[put("")]
 async fn put_list(
     list: web::Json<List>,
     _claims: Claims,
@@ -139,7 +139,7 @@ async fn put_list(
     }
 }
 
-#[put("/list/{id}/user")]
+#[put("/{id}/user")]
 async fn add_user(
     id: web::Path<usize>,
     claims: Claims,
@@ -162,7 +162,7 @@ async fn add_user(
     }
 }
 
-#[delete("/list/{id}/user")]
+#[delete("/{id}/user")]
 async fn remove_user(
     id: web::Path<usize>,
     claims: Claims,
