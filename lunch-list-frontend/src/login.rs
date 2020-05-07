@@ -2,25 +2,22 @@ use anyhow::Error;
 use log::{error, info};
 use web_sys::HtmlInputElement;
 use yew::{
-    agent::{Bridge, Bridged},
+    agent::{Dispatched, Dispatcher},
     format::Json,
     html,
     html::NodeRef,
-    services::{
-        fetch::{FetchService, FetchTask, Request, Response},
-        storage::{Area, StorageService},
-    },
+    services::fetch::{FetchService, FetchTask, Request, Response},
     Component, ComponentLink, Html, ShouldRender,
 };
 use yew_router::{agent::RouteRequest, prelude::*};
 
+use crate::api::AuthApi;
 use crate::models::{LoginRequest, LoginResponse};
 use crate::routes::AppRoute;
 
 pub struct LoginComponent {
     link: ComponentLink<Self>,
-    router: Box<dyn Bridge<RouteAgent>>,
-    storage: StorageService,
+    router: Dispatcher<RouteAgent>,
     fetch: FetchService,
     fetch_task: Option<FetchTask>,
     name_input: NodeRef,
@@ -32,7 +29,6 @@ pub enum Msg {
     LoginReady(Result<LoginResponse, Error>),
     LoginFailed,
     ServerError,
-    NoOp,
 }
 
 impl LoginComponent {
@@ -50,7 +46,7 @@ impl LoginComponent {
                         Msg::ServerError
                     }
                 });
-        let request = Request::post("http://localhost:8080/api/auth/login")
+        let request = Request::post(AuthApi::Login.to_string())
             .header("content-type", "application/json")
             .body(Json(&req))
             .unwrap();
@@ -63,12 +59,9 @@ impl Component for LoginComponent {
     type Properties = ();
 
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
-        let callback = link.callback(|_| Msg::NoOp);
-        let router = RouteAgent::bridge(callback);
         Self {
             link,
-            router,
-            storage: StorageService::new(Area::Local).unwrap(),
+            router: RouteAgent::dispatcher(),
             fetch: FetchService::new(),
             fetch_task: Default::default(),
             name_input: Default::default(),
@@ -90,7 +83,7 @@ impl Component for LoginComponent {
             }
             Msg::LoginReady(result) => {
                 match result {
-                    Ok(res) => self.storage.store("token", Ok(res.token)),
+                    Ok(res) => info!("token: {}", res.token),
                     Err(e) => error!("Error when logging in: {}", e),
                 }
                 let route = Route::from(AppRoute::Dashboard);
@@ -101,7 +94,6 @@ impl Component for LoginComponent {
                 error!("Login failed");
             }
             Msg::ServerError => error!("Server error"),
-            Msg::NoOp => (),
         }
         false
     }

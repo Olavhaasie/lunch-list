@@ -1,13 +1,15 @@
-use yew_router::Switch;
+use yew_router::{switch::Permissive, Switch};
 
 #[derive(Debug, Clone, Switch)]
 pub enum AppRoute {
-    #[to = "/login"]
+    #[to = "/login!"]
     Login,
-    #[to = "/dashboard"]
+    #[to = "/dashboard!"]
     Dashboard,
-    #[to = "/list/{id}"]
+    #[to = "/list/{id}!"]
     List { id: usize },
-    #[to = "/user"]
+    #[to = "/user!"]
     User,
+    #[to = "/page-not-found"]
+    NotFound(Permissive<String>),
 }
