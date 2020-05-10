@@ -7,20 +7,21 @@ use yew::{
     html,
     html::NodeRef,
     services::fetch::{FetchService, FetchTask, Request, Response},
-    Callback, Component, ComponentLink, Html, Properties, ShouldRender,
+    Component, ComponentLink, Html, ShouldRender,
 };
 use yew_router::{agent::RouteRequest, prelude::*};
 
 use crate::api::AuthApi;
 use crate::models::{LoginRequest, LoginResponse};
 use crate::routes::AppRoute;
+use crate::{TokenAgent, TokenRequest};
 
 pub struct LoginComponent {
-    props: Props,
     link: ComponentLink<Self>,
     router: Dispatcher<RouteAgent>,
     fetch: FetchService,
     fetch_task: Option<FetchTask>,
+    token: Dispatcher<TokenAgent>,
     name_input: NodeRef,
     password_input: NodeRef,
 }
@@ -30,11 +31,6 @@ pub enum Msg {
     LoginReady(Result<LoginResponse, Error>),
     LoginFailed,
     ServerError,
-}
-
-#[derive(Properties, Clone)]
-pub struct Props {
-    pub login_callback: Callback<String>,
 }
 
 impl LoginComponent {
@@ -62,15 +58,15 @@ impl LoginComponent {
 
 impl Component for LoginComponent {
     type Message = Msg;
-    type Properties = Props;
+    type Properties = ();
 
-    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
+    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
         Self {
-            props,
             link,
             router: RouteAgent::dispatcher(),
             fetch: FetchService::new(),
             fetch_task: Default::default(),
+            token: TokenAgent::dispatcher(),
             name_input: Default::default(),
             password_input: Default::default(),
         }
@@ -90,7 +86,7 @@ impl Component for LoginComponent {
             }
             Msg::LoginReady(result) => {
                 match result {
-                    Ok(data) => self.props.login_callback.emit(data.token),
+                    Ok(data) => self.token.send(TokenRequest::UpdateToken(data.token)),
                     Err(e) => error!("Error when logging in: {}", e),
                 }
                 let route = Route::from(AppRoute::Dashboard);

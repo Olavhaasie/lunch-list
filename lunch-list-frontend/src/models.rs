@@ -10,3 +10,16 @@ pub struct LoginRequest {
 pub struct LoginResponse {
     pub token: String,
 }
+
+#[derive(Debug, Deserialize)]
+pub struct ListsResponse {
+    pub lists: Vec<List>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct List {
+    pub id: usize,
+    pub date: String,
+    #[serde(rename = "type")]
+    pub list_type: String,
+}

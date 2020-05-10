@@ -3,28 +3,28 @@ use yew::{
     agent::{Bridge, Bridged},
     format::{Json, Nothing},
     html,
-    services::{
-        fetch,
-        fetch::{FetchService, FetchTask, Request},
-    },
+    services::fetch::{FetchService, FetchTask, Request},
     Component, ComponentLink, Html, ShouldRender,
 };
 use yew_router::{agent::RouteRequest, prelude::*, switch::Permissive};
 
-use crate::{api::AuthApi, login::LoginComponent, models::LoginResponse, routes::AppRoute};
-
-type Response<T> = fetch::Response<Json<anyhow::Result<T>>>;
+use crate::{
+    api::{AuthApi, Response},
+    lists::ListsComponent,
+    login::LoginComponent,
+    models::LoginResponse,
+    routes::AppRoute,
+    TokenAgent, TokenRequest,
+};
 
 pub struct App {
-    link: ComponentLink<Self>,
     router: Box<dyn Bridge<RouteAgent>>,
     fetch_task: Option<FetchTask>,
-    token: Option<String>,
+    token: Box<dyn Bridge<TokenAgent>>,
 }
 
 pub enum Msg {
     Fetch(Response<LoginResponse>),
-    UpdateToken(String),
     NoOp,
 }
 
@@ -34,6 +34,7 @@ impl Component for App {
 
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
         let router = RouteAgent::bridge(link.callback(|_| Msg::NoOp));
+        let token = TokenAgent::bridge(link.callback(|_| Msg::NoOp));
 
         let callback = link.callback(Msg::Fetch);
         let request = Request::get(AuthApi::Refresh.to_string())
@@ -42,10 +43,9 @@ impl Component for App {
         let fetch_task = FetchService::new().fetch(request, callback).ok();
 
         Self {
-            link,
             router,
             fetch_task,
-            token: None,
+            token,
         }
     }
 
@@ -58,12 +58,11 @@ impl Component for App {
                 if meta.status.is_success() {
                     match data {
                         Ok(data) => {
-                            self.token = Some(data.token);
+                            self.token.send(TokenRequest::UpdateToken(data.token));
                         }
                         Err(e) => error!("Error when refreshing: {}", e),
                     }
                 } else if meta.status.is_client_error() {
-                    self.token = None;
                     self.router
                         .send(RouteRequest::ChangeRoute(AppRoute::Login.into()));
                     return true;
@@ -71,7 +70,6 @@ impl Component for App {
                     error!("Got server error");
                 }
             }
-            Msg::UpdateToken(token) => self.token = Some(token),
             Msg::NoOp => (),
         }
         false
@@ -82,16 +80,16 @@ impl Component for App {
     }
 
     fn view(&self) -> Html {
-        let callback = self.link.callback(Msg::UpdateToken);
         html! {
             <Router<AppRoute, ()>
                 render = Router::render(move |switch: AppRoute| {
                     match switch {
-                        AppRoute::Login => html!{<LoginComponent login_callback=callback.clone()/>},
-                        AppRoute::Dashboard => html!{"dashboard"},
+                        AppRoute::Login => html!{<LoginComponent/>},
+                        AppRoute::Dashboard => html!{<ListsComponent/>},
                         AppRoute::List { id } => html!{ id },
                         AppRoute::User => html!{"user"},
                         AppRoute::NotFound(Permissive(r)) => html!{format!("Page not found {}", r.unwrap_or_default())},
+                        _ => html!{"loading..."},
                     }
                 })
 
