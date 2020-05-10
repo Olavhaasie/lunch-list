@@ -16,6 +16,7 @@ use crate::{api::AuthApi, login::LoginComponent, models::LoginResponse, routes::
 type Response<T> = fetch::Response<Json<anyhow::Result<T>>>;
 
 pub struct App {
+    link: ComponentLink<Self>,
     router: Box<dyn Bridge<RouteAgent>>,
     fetch_task: Option<FetchTask>,
     token: Option<String>,
@@ -23,6 +24,7 @@ pub struct App {
 
 pub enum Msg {
     Fetch(Response<LoginResponse>),
+    UpdateToken(String),
     NoOp,
 }
 
@@ -40,6 +42,7 @@ impl Component for App {
         let fetch_task = FetchService::new().fetch(request, callback).ok();
 
         Self {
+            link,
             router,
             fetch_task,
             token: None,
@@ -68,6 +71,7 @@ impl Component for App {
                     error!("Got server error");
                 }
             }
+            Msg::UpdateToken(token) => self.token = Some(token),
             Msg::NoOp => (),
         }
         false
@@ -78,11 +82,12 @@ impl Component for App {
     }
 
     fn view(&self) -> Html {
+        let callback = self.link.callback(Msg::UpdateToken);
         html! {
             <Router<AppRoute, ()>
-                render = Router::render(|switch: AppRoute| {
+                render = Router::render(move |switch: AppRoute| {
                     match switch {
-                        AppRoute::Login => html!{<LoginComponent/>},
+                        AppRoute::Login => html!{<LoginComponent login_callback=callback.clone()/>},
                         AppRoute::Dashboard => html!{"dashboard"},
                         AppRoute::List { id } => html!{ id },
                         AppRoute::User => html!{"user"},

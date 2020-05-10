@@ -7,7 +7,7 @@ use yew::{
     html,
     html::NodeRef,
     services::fetch::{FetchService, FetchTask, Request, Response},
-    Component, ComponentLink, Html, ShouldRender,
+    Callback, Component, ComponentLink, Html, Properties, ShouldRender,
 };
 use yew_router::{agent::RouteRequest, prelude::*};
 
@@ -16,6 +16,7 @@ use crate::models::{LoginRequest, LoginResponse};
 use crate::routes::AppRoute;
 
 pub struct LoginComponent {
+    props: Props,
     link: ComponentLink<Self>,
     router: Dispatcher<RouteAgent>,
     fetch: FetchService,
@@ -29,6 +30,11 @@ pub enum Msg {
     LoginReady(Result<LoginResponse, Error>),
     LoginFailed,
     ServerError,
+}
+
+#[derive(Properties, Clone)]
+pub struct Props {
+    pub login_callback: Callback<String>,
 }
 
 impl LoginComponent {
@@ -56,10 +62,11 @@ impl LoginComponent {
 
 impl Component for LoginComponent {
     type Message = Msg;
-    type Properties = ();
+    type Properties = Props;
 
-    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
+    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
         Self {
+            props,
             link,
             router: RouteAgent::dispatcher(),
             fetch: FetchService::new(),
@@ -83,7 +90,7 @@ impl Component for LoginComponent {
             }
             Msg::LoginReady(result) => {
                 match result {
-                    Ok(res) => info!("token: {}", res.token),
+                    Ok(data) => self.props.login_callback.emit(data.token),
                     Err(e) => error!("Error when logging in: {}", e),
                 }
                 let route = Route::from(AppRoute::Dashboard);
