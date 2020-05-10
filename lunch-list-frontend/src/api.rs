@@ -1,7 +1,7 @@
 use std::fmt;
 use yew::{format::Json, services::fetch};
 
-const BASE_API_URL: &str = env!("BASE_API_URL");
+const BASE_API_URL: &str = "/api";
 
 pub type Response<T> = fetch::Response<Json<anyhow::Result<T>>>;
 
