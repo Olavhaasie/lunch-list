@@ -1,4 +1,6 @@
-$font-stack: monospace, sans-serif;
+@import url(https://overpass-30e2.kxcdn.com/overpass.css);
+
+$font-stack: Overpass, sans-serif;
 
 // Nord color theme (https://github.com/arcticicestudio/nord)
 $bg-color: #eceff4;
@@ -39,13 +41,13 @@ body {
     width: min-content;
     padding: 25px;
     background-color: white;
-    border: rgba(184, 194, 215, 0.25) 0px 4px 6px, rgba(184, 194, 215, 0.1) 0px 5px 7px;
     border-radius: 5px;
-    box-shadow: 0 6px 8px 0 $passive-color;
+    box-shadow: 0 4px 6px $passive-color;
 }
 
 .input-label {
     font-size: smaller;
+    font-weight: bold;
 }
 
 .input {
