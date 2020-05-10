@@ -1,0 +1,56 @@
+$font-stack: monospace, sans-serif;
+
+// Nord color theme (https://github.com/arcticicestudio/nord)
+$bg-color: #eceff4;
+$fg-color: #2e3440;
+
+$passive-color: #d8dee9;
+$primary-color: #88c0d0;
+$alt-primary-color: #8fbcbb;
+$secondary-color: #81a1c1;
+
+$red: #bf616a;
+$orange: #d08770;
+$yellow: #ebcb8b;
+$green: #a3be8c;
+$magenta: #b48ead;
+
+body {
+    font-family: $font-stack;
+    background-color: $bg-color;
+    color: $fg-color;
+}
+
+.login {
+    margin: auto;
+    width: min-content;
+    padding: 25px;
+    background-color: white;
+    border: rgba(184, 194, 215, 0.25) 0px 4px 6px, rgba(184, 194, 215, 0.1) 0px 5px 7px;
+    border-radius: 5px;
+    box-shadow: 0 6px 8px 0 $passive-color;
+}
+
+.input-label {
+    font-size: smaller;
+}
+
+.input {
+    border: 2px solid $passive-color;
+    margin-bottom: 7px;
+    padding: 3px 5px 3px 5px;
+    border-radius: 2px;
+}
+
+.login-button {
+    background-color: $primary-color;
+    border-radius: 3px;
+    border: none;
+    padding: 3px 10px 3px 10px;
+    cursor: pointer;
+    font-size: medium;
+}
+
+.login-button:hover {
+    background-color: $alt-primary-color;
+}

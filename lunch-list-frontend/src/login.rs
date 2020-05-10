@@ -108,11 +108,11 @@ impl Component for LoginComponent {
     fn view(&self) -> Html {
         html! {
             <div class="login">
-                <label class="login-label" for="username">{ "Username" }</label>
+                <label class="input-label" for="username">{ "Username" }</label>
                 <br></br>
                 <input class="input" ref=self.name_input.clone() type="text" name="username"/>
                 <br></br>
-                <label class="login-label" for="password">{ "Password" }</label>
+                <label class="input-label" for="password">{ "Password" }</label>
                 <br></br>
                 <input class="input" ref=self.password_input.clone() type="password" name="password"/>
                 <br></br>
