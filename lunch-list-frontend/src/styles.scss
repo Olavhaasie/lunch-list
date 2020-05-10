@@ -8,12 +8,24 @@ $passive-color: #d8dee9;
 $primary-color: #88c0d0;
 $alt-primary-color: #8fbcbb;
 $secondary-color: #81a1c1;
+$highlight-color: #e5e9f0;
 
 $red: #bf616a;
 $orange: #d08770;
 $yellow: #ebcb8b;
 $green: #a3be8c;
 $magenta: #b48ead;
+
+@mixin center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+::selection {
+    background-color: $highlight-color;
+}
 
 body {
     font-family: $font-stack;
@@ -22,6 +34,7 @@ body {
 }
 
 .login {
+    @include center;
     margin: auto;
     width: min-content;
     padding: 25px;
