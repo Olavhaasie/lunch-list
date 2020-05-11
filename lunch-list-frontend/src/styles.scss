@@ -5,11 +5,12 @@ $font-stack: Overpass, sans-serif;
 // Nord color theme (https://github.com/arcticicestudio/nord)
 $bg-color: #eceff4;
 $fg-color: #2e3440;
+$light-fg-color: #4c566a;
 
-$passive-color: #d8dee9;
 $primary-color: #88c0d0;
 $alt-primary-color: #8fbcbb;
 $secondary-color: #81a1c1;
+$passive-color: #d8dee9;
 $highlight-color: #e5e9f0;
 
 $red: #bf616a;
@@ -25,6 +26,14 @@ $magenta: #b48ead;
     transform: translate(-50%, -50%);
 }
 
+@mixin container {
+    background-color: white;
+    border-radius: 5px;
+    box-shadow: 0 4px 6px $passive-color;
+    margin: auto;
+    max-width: 400px;
+}
+
 ::selection {
     background-color: $highlight-color;
 }
@@ -37,12 +46,8 @@ body {
 
 .login {
     @include center;
-    margin: auto;
-    width: min-content;
+    @include container;
     padding: 25px;
-    background-color: white;
-    border-radius: 5px;
-    box-shadow: 0 4px 6px $passive-color;
 }
 
 .input-label {
@@ -68,4 +73,54 @@ body {
 
 .login-button:hover {
     background-color: $alt-primary-color;
+}
+
+.list-container {
+    @include container;
+    padding: 0;
+}
+
+.list-list {
+    margin: 0;
+    padding: 0;
+}
+
+.lunch-item::before {
+    content: "🥪";
+}
+
+.dinner-item::before {
+    content: "🍗";
+}
+
+.list-item {
+    display: flex;
+    justify-content: space-between;
+    list-style: none;
+
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    margin-left: 2px;
+    margin-right: 2px;
+
+    border-bottom: 1px solid $passive-color;
+}
+
+.list-item:last-child {
+    border-bottom: none;
+}
+
+.date-content {
+    flex-grow: 2;
+    padding: 0;
+    margin-left: 8px;
+}
+
+.attendance-content {
+    color: $light-fg-color;
+}
+.attendance-content::before {
+    content: "🧑";
 }

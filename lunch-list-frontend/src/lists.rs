@@ -91,9 +91,19 @@ impl Component for ListsComponent {
 
 impl ListsComponent {
     fn view_list(&self, list: &List) -> Html {
+        let class = match list.list_type.as_str() {
+            "lunch" => "lunch-item",
+            "dinner" => "dinner-item",
+            _ => "",
+        };
         html! {
-            <li>
-                { &list.date }
+            <li class=("list-item", class)>
+                <div class="date-content">
+                    { &list.date }
+                </div>
+                <div class="attendance-content">
+                    { 0 }
+                </div>
             </li>
         }
     }
