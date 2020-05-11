@@ -2,9 +2,11 @@
 name = "lunch-list-backend"
 version = "0.1.0"
 authors = ["Olav de Haas <https://github.com/Olavhaasie>"]
+description = "A fast and simple web lunch attendance list 📝"
 edition = "2018"
 
-description = "A fast and simple web lunch attendance list 📝"
+repository = "https://github.com/Olavhaasie/lunch-list"
+license = "Apache-2.0"
 
 publish = false
 

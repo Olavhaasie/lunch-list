@@ -2,7 +2,13 @@
 name = "lunch-list-frontend"
 version = "0.1.0"
 authors = ["Olav de Haas <https://github.com/Olavhaasie>"]
+description = "lunch-list client web app written using WebAssembly and Yew"
 edition = "2018"
+
+repository = "https://github.com/Olavhaasie/lunch-list"
+license = "Apache-2.0"
+
+publish = false
 
 [lib]
 crate-type = ["cdylib"]

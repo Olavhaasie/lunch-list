@@ -39,9 +39,19 @@ $magenta: #b48ead;
 }
 
 body {
+    display: flex;
+    flex-direction: column;
+    min-height: 97vh;
+
     font-family: $font-stack;
     background-color: $bg-color;
     color: $fg-color;
+}
+
+.content {
+    flex: 1;
+    padding: 0;
+    margin: 0;
 }
 
 .login {
@@ -124,3 +134,17 @@ body {
 .attendance-content::before {
     content: "🧑";
 }
+
+.footer {
+    flex: none;
+
+    user-select: none;
+    color: $passive-color;
+    font-weight: bolder;
+    text-align: center;
+
+    p {
+        margin-bottom: 2px;
+    }
+}
+

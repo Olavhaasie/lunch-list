@@ -81,6 +81,8 @@ impl Component for App {
 
     fn view(&self) -> Html {
         html! {
+            <>
+            <div class="content">
             <Router<AppRoute, ()>
                 render = Router::render(move |switch: AppRoute| {
                     match switch {
@@ -97,6 +99,14 @@ impl Component for App {
                     AppRoute::NotFound(Permissive(Some(r.route)))
                 })
             />
+            </div>
+            <footer class="footer">
+                <p>{ format!("{} v{}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION")) }</p>
+                <a href=env!("CARGO_PKG_REPOSITORY") target="_blank">
+                    <img src="/github-mark.png"/>
+                </a>
+            </footer>
+            </>
         }
     }
 }
