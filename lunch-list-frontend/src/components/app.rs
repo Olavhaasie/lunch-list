@@ -13,16 +13,15 @@ use yew_router::{agent::RouteRequest, prelude::*, switch::Permissive};
 
 use std::time::Duration;
 
-const REFRESH_INTERVAL_SECS: u64 = 8 * 60;
-
 use crate::{
     api::{AuthApi, Response},
-    lists::ListsComponent,
-    login::LoginComponent,
+    components::{ListsComponent, LoginComponent},
     models::LoginResponse,
     routes::AppRoute,
     TokenAgent, TokenRequest,
 };
+
+const REFRESH_INTERVAL_SECS: u64 = 8 * 60;
 
 pub struct App {
     link: ComponentLink<Self>,

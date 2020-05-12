@@ -1,9 +1,7 @@
 #![recursion_limit = "256"]
 
-pub mod api;
-mod app;
-mod lists;
-mod login;
+mod api;
+mod components;
 mod models;
 mod routes;
 mod token_agent;
@@ -19,5 +17,5 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 #[wasm_bindgen]
 pub fn run_app() {
     wasm_logger::init(wasm_logger::Config::default());
-    yew::start_app::<app::App>();
+    yew::start_app::<components::App>();
 }
