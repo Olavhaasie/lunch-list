@@ -17,6 +17,15 @@ pub struct ListsResponse {
 }
 
 #[derive(Debug, Deserialize)]
+pub struct ListResponse {
+    pub id: usize,
+    pub date: String,
+    #[serde(rename = "type")]
+    pub list_type: String,
+    pub users: Vec<String>,
+}
+
+#[derive(Debug, Deserialize)]
 pub struct List {
     pub id: usize,
     pub date: String,

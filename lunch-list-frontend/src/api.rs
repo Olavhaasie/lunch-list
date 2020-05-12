@@ -14,6 +14,7 @@ pub enum AuthApi {
 
 pub enum ListApi {
     GetAll,
+    Get(usize),
 }
 
 impl fmt::Display for AuthApi {
@@ -38,7 +39,8 @@ impl fmt::Display for ListApi {
             "{}/list{}",
             BASE_API_URL,
             match self {
-                Self::GetAll => "",
+                Self::GetAll => "".to_string(),
+                Self::Get(id) => format!("/{}", id),
             }
         )
     }

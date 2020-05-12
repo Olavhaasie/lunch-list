@@ -146,7 +146,7 @@ async fn add_user(
     let exists = conn.exists(&format!("list:{}", id)).await?;
 
     if exists {
-        let added = conn.sadd(&format!("users:{}", id), claims.sub).await?;
+        let added = conn.sadd(&format!("users:{}", id), claims.name).await?;
         if added {
             Ok(HttpResponse::Created())
         } else {

@@ -20,7 +20,7 @@ use yew_router::{
 
 use crate::{
     api::{AuthApi, Response},
-    components::{ListsComponent, LoginComponent},
+    components::{ListComponent, ListsComponent, LoginComponent},
     models::LoginResponse,
     routes::AppRoute,
     TokenAgent, TokenRequest,
@@ -116,7 +116,7 @@ impl Component for App {
                     match switch {
                         AppRoute::Login => html!{<LoginComponent/>},
                         AppRoute::Dashboard => html!{<ListsComponent/>},
-                        AppRoute::List { id } => html!{ id },
+                        AppRoute::List { id } => html!{<ListComponent id=id/>},
                         AppRoute::User => html!{"user"},
                         AppRoute::NotFound(Permissive(r)) => html!{format!("Page not found {}", r.unwrap_or_default())},
                         _ => html!{"loading..."},
