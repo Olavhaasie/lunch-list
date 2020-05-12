@@ -6,9 +6,11 @@ use yew::{
     services::fetch::{FetchService, FetchTask, Request},
     Component, ComponentLink, Html, ShouldRender,
 };
+use yew_router::components::RouterAnchor;
 
 use crate::api::{ListApi, Response};
 use crate::models::{List, ListsResponse};
+use crate::routes::AppRoute;
 use crate::{TokenAgent, TokenRequest};
 
 pub struct ListsComponent {
@@ -97,14 +99,16 @@ impl ListsComponent {
             _ => "",
         };
         html! {
-            <li class=("list-item", class)>
-                <div class="date-content">
-                    { &list.date }
-                </div>
-                <div class="attendance-content">
-                    { 0 }
-                </div>
-            </li>
+            <RouterAnchor<AppRoute> classes="list-anchor" route=AppRoute::List { id: list.id }>
+                <li class=("list-item", class)>
+                    <div class="date-content">
+                        { &list.date }
+                    </div>
+                    <div class="attendance-content">
+                        { 0 }
+                    </div>
+                </li>
+            </RouterAnchor<AppRoute>>
         }
     }
 }

@@ -6,7 +6,7 @@ pub enum AppRoute {
     Login,
     #[to = "/dashboard!"]
     Dashboard,
-    #[to = "/list/{id}!"]
+    #[to = "/list/{id}"]
     List { id: usize },
     #[to = "/user!"]
     User,
