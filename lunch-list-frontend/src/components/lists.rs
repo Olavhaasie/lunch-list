@@ -84,11 +84,16 @@ impl Component for ListsComponent {
 
     fn view(&self) -> Html {
         html! {
+            <>
+            <div class="list-header">
+                <h1>{ "lunch-list" }</h1>
+            </div>
             <div class="list-container">
                 <ul class="list-list">
                     { for self.lists.iter().map(|l| self.view_list(l)) }
                 </ul>
             </div>
+            </>
         }
     }
 }
