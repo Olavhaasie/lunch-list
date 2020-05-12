@@ -3,10 +3,17 @@ use yew::{
     agent::{Bridge, Bridged},
     format::{Json, Nothing},
     html,
-    services::fetch::{FetchService, FetchTask, Request},
+    services::{
+        fetch::{FetchService, FetchTask, Request},
+        interval::{IntervalService, IntervalTask},
+    },
     Component, ComponentLink, Html, ShouldRender,
 };
 use yew_router::{agent::RouteRequest, prelude::*, switch::Permissive};
+
+use std::time::Duration;
+
+const REFRESH_INTERVAL_SECS: u64 = 8 * 60;
 
 use crate::{
     api::{AuthApi, Response},
@@ -18,13 +25,17 @@ use crate::{
 };
 
 pub struct App {
+    link: ComponentLink<Self>,
     router: Box<dyn Bridge<RouteAgent>>,
     fetch_task: Option<FetchTask>,
     token: Box<dyn Bridge<TokenAgent>>,
+    #[allow(dead_code)]
+    interval_task: IntervalTask,
 }
 
 pub enum Msg {
     Fetch(Response<LoginResponse>),
+    RefreshToken,
     NoOp,
 }
 
@@ -42,10 +53,16 @@ impl Component for App {
             .unwrap();
         let fetch_task = FetchService::new().fetch(request, callback).ok();
 
+        let callback = link.callback(|_| Msg::RefreshToken);
+        let duration = Duration::from_secs(REFRESH_INTERVAL_SECS);
+        let interval_task = IntervalService::new().spawn(duration, callback);
+
         Self {
+            link,
             router,
             fetch_task,
             token,
+            interval_task,
         }
     }
 
@@ -69,6 +86,13 @@ impl Component for App {
                 } else {
                     error!("Got server error");
                 }
+            }
+            Msg::RefreshToken => {
+                let callback = self.link.callback(Msg::Fetch);
+                let request = Request::get(AuthApi::Refresh.to_string())
+                    .body(Nothing)
+                    .unwrap();
+                self.fetch_task = FetchService::new().fetch(request, callback).ok();
             }
             Msg::NoOp => (),
         }
