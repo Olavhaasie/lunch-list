@@ -1,8 +1,9 @@
-use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
-use yew::worker::*;
 
-#[derive(Serialize, Deserialize, Debug)]
+use serde::{Deserialize, Serialize};
+use yew::worker::{Agent, AgentLink, Context, HandlerId};
+
+#[derive(Debug, Deserialize, Serialize)]
 pub enum TokenRequest {
     UpdateToken(String),
     GetToken,

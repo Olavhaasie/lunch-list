@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use log::{error, info};
 use yew::{
     agent::{Bridge, Bridged},
@@ -9,9 +11,12 @@ use yew::{
     },
     Component, ComponentLink, Html, ShouldRender,
 };
-use yew_router::{agent::RouteRequest, prelude::*, switch::Permissive};
-
-use std::time::Duration;
+use yew_router::{
+    agent::{RouteAgent, RouteRequest},
+    route::Route,
+    router::Router,
+    switch::Permissive,
+};
 
 use crate::{
     api::{AuthApi, Response},

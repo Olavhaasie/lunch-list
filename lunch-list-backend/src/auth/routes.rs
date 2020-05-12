@@ -1,3 +1,5 @@
+use std::ops::DerefMut;
+
 use actix_web::{
     cookie::{Cookie, SameSite},
     get, post, web, HttpMessage, HttpRequest, HttpResponse, Responder,
@@ -7,15 +9,12 @@ use mobc_redis::{redis, redis::AsyncCommands};
 use serde_json::json;
 use validator::Validate;
 
-use std::ops::DerefMut;
-
 use super::{
     claims::{decode, get_token_pair, RefreshClaims},
     login::Login,
     logout::LogoutRequest,
 };
-use crate::errors::ServiceError;
-use crate::Pool;
+use crate::{errors::ServiceError, Pool};
 
 type Hasher = blake2::Blake2b;
 

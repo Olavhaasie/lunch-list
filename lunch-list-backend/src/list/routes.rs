@@ -1,17 +1,12 @@
+use std::ops::DerefMut;
+
 use actix_web::{delete, get, put, web, HttpResponse, Responder};
 use chrono::Datelike;
 use mobc_redis::{redis, redis::AsyncCommands};
 use serde_json::json;
 
-use std::ops::DerefMut;
-
-use crate::errors::ServiceError;
-use crate::Pool;
-
-use super::list_model::List;
-use super::list_query::ListQuery;
-use super::list_type::ListType;
-use crate::auth::Claims;
+use super::{list_model::List, list_query::ListQuery, list_type::ListType};
+use crate::{auth::Claims, errors::ServiceError, Pool};
 
 #[get("/{id}")]
 async fn get_list(

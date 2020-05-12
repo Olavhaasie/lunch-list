@@ -1,9 +1,8 @@
 use actix_web::{dev, http::HeaderMap, FromRequest, HttpRequest};
 use chrono::{Duration, Utc};
+use futures::future::{err, ok, Ready};
 use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
-
-use futures::future::{err, ok, Ready};
 
 use crate::errors::ServiceError;
 

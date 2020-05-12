@@ -1,4 +1,5 @@
 use std::fmt;
+
 use yew::{format::Json, services::fetch};
 
 const BASE_API_URL: &str = "/api";

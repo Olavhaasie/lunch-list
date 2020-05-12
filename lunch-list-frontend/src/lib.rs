@@ -1,4 +1,5 @@
 #![recursion_limit = "256"]
+use wasm_bindgen::prelude::wasm_bindgen;
 
 mod api;
 mod components;
@@ -7,8 +8,6 @@ mod routes;
 mod token_agent;
 
 pub use token_agent::{TokenAgent, TokenRequest};
-
-use wasm_bindgen::prelude::wasm_bindgen;
 
 #[cfg(feature = "wee-alloc")]
 #[global_allocator]

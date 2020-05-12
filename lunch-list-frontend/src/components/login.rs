@@ -11,10 +11,12 @@ use yew::{
 };
 use yew_router::{agent::RouteRequest, prelude::*};
 
-use crate::api::AuthApi;
-use crate::models::{LoginRequest, LoginResponse};
-use crate::routes::AppRoute;
-use crate::{TokenAgent, TokenRequest};
+use crate::{
+    api::AuthApi,
+    models::{LoginRequest, LoginResponse},
+    routes::AppRoute,
+    TokenAgent, TokenRequest,
+};
 
 pub struct LoginComponent {
     link: ComponentLink<Self>,

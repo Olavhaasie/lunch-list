@@ -1,3 +1,5 @@
+use std::{collections::HashMap, convert::From, env, fmt};
+
 use actix_web::{
     error::{BlockingError, ResponseError},
     http::{header, StatusCode},
@@ -8,11 +10,6 @@ use failure::Fail;
 use jsonwebtoken::errors::Error as JwtError;
 use mobc_redis::redis::RedisError;
 use serde_json::json;
-
-use std::collections::HashMap;
-use std::convert::From;
-use std::env;
-use std::fmt;
 
 #[derive(Debug, Fail)]
 pub enum ServiceError {

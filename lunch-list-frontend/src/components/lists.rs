@@ -8,10 +8,12 @@ use yew::{
 };
 use yew_router::components::RouterAnchor;
 
-use crate::api::{ListApi, Response};
-use crate::models::{List, ListsResponse};
-use crate::routes::AppRoute;
-use crate::{TokenAgent, TokenRequest};
+use crate::{
+    api::{ListApi, Response},
+    models::{List, ListsResponse},
+    routes::AppRoute,
+    TokenAgent, TokenRequest,
+};
 
 pub struct ListsComponent {
     lists: Vec<List>,

@@ -1,14 +1,11 @@
+use std::io;
+
 use actix_files::{Files, NamedFile};
 use actix_web::{middleware, web, App, HttpServer};
 use clap::Clap;
 use mobc_redis::{redis, RedisConnectionManager};
 
-use std::io;
-
-use lunch_list_backend::auth;
-use lunch_list_backend::list;
-use lunch_list_backend::not_found;
-use lunch_list_backend::user;
+use lunch_list_backend::{auth, list, not_found, user};
 
 const ASSETS_DIR: &str = "static";
 const INDEX_HTML: &str = "index.html";

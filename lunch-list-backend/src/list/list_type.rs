@@ -1,6 +1,6 @@
-use serde::{Deserialize, Serialize};
-
 use std::{cmp::PartialEq, fmt, str::FromStr};
+
+use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, PartialEq, Serialize)]
 #[serde(tag = "type")]

@@ -1,6 +1,6 @@
-use serde::Deserialize;
-
 use std::cmp::min;
+
+use serde::Deserialize;
 
 const DEFAULT_FROM: usize = 0;
 const MAX_QUERY_LEN: usize = 100;

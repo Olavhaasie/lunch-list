@@ -1,10 +1,9 @@
+use std::{borrow::Cow, collections::HashMap};
+
 use bcrypt::BcryptResult;
 use serde::{Deserialize, Deserializer};
 use validator::{Validate, ValidationError};
 use validator_derive::Validate;
-
-use std::borrow::Cow;
-use std::collections::HashMap;
 
 #[derive(Debug, Deserialize, Validate)]
 pub struct Login {
