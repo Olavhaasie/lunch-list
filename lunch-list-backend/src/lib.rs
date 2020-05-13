@@ -1,3 +1,4 @@
+#![forbid(unsafe_code)]
 use actix_web::{web::HttpResponse, Responder};
 use serde_json::json;
 

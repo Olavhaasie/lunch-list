@@ -1,3 +1,4 @@
+#![forbid(unsafe_code)]
 #![recursion_limit = "256"]
 use wasm_bindgen::prelude::wasm_bindgen;
 
