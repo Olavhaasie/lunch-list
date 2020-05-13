@@ -8,6 +8,8 @@ edition = "2018"
 repository = "https://github.com/Olavhaasie/lunch-list"
 license = "Apache-2.0"
 
+build = "build.rs"
+
 publish = false
 
 [lib]
