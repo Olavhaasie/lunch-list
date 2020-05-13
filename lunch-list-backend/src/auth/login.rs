@@ -1,6 +1,6 @@
 use std::{borrow::Cow, collections::HashMap};
 
-use bcrypt::BcryptResult;
+use rand::Rng;
 use serde::{Deserialize, Deserializer};
 use validator::{Validate, ValidationError};
 use validator_derive::Validate;
@@ -43,12 +43,15 @@ fn validate_username(username: &str) -> Result<(), ValidationError> {
 
 impl Login {
     /// Returns true when the hash can be verified, false otherwise.
-    pub fn verify_hash(&self, hash: &str) -> BcryptResult<bool> {
-        bcrypt::verify(self.password.as_bytes(), hash)
+    pub fn verify_hash(&self, hash: &str) -> argon2::Result<bool> {
+        argon2::verify_encoded(hash, self.password.as_bytes())
     }
 
-    pub fn hash(&self) -> BcryptResult<String> {
-        bcrypt::hash(self.password.as_bytes(), bcrypt::DEFAULT_COST)
+    pub fn hash(&self) -> argon2::Result<String> {
+        let mut salt = [0u8; 32];
+        rand::thread_rng().fill(&mut salt[..]);
+        let config = argon2::Config::default();
+        argon2::hash_encoded(self.password.as_bytes(), &salt, &config)
     }
 }
 

@@ -5,7 +5,6 @@ use actix_web::{
     http::{header, StatusCode},
     HttpResponse,
 };
-use bcrypt::BcryptError;
 use failure::Fail;
 use jsonwebtoken::errors::Error as JwtError;
 use mobc_redis::redis::RedisError;
@@ -26,7 +25,7 @@ pub enum ServiceError {
     #[fail(display = "User with username '{}' already exists", username)]
     UserAlreadyExists { username: String },
     #[fail(display = "Internal Server Error")]
-    BcryptError(BcryptError),
+    HashError(argon2::Error),
     #[fail(display = "Missing 'Authorization' header with Bearer token")]
     MissingAuthHeader,
     #[fail(display = "Invalid header value")]
@@ -78,9 +77,9 @@ impl From<env::VarError> for ServiceError {
     }
 }
 
-impl From<BcryptError> for ServiceError {
-    fn from(err: BcryptError) -> Self {
-        Self::BcryptError(err)
+impl From<argon2::Error> for ServiceError {
+    fn from(err: argon2::Error) -> Self {
+        Self::HashError(err)
     }
 }
 
