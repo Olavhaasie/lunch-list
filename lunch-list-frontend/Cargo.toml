@@ -21,8 +21,7 @@ wee-alloc = ["wee_alloc"]
 [dependencies]
 anyhow = "1"
 log = "0.4"
-serde = "1"
-serde_derive = "1"
+serde = { version = "1", features = ["derive"] }
 wasm-bindgen = "0.2"
 wasm-logger = "0.2"
 wee_alloc = { version = "0.4", optional = true }

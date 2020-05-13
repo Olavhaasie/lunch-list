@@ -1215,7 +1215,6 @@ dependencies = [
  "log",
  "sass-rs",
  "serde",
- "serde_derive",
  "wasm-bindgen",
  "wasm-logger",
  "wee_alloc",
