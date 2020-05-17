@@ -5,34 +5,34 @@ use actix_web::{
     http::{header, StatusCode},
     HttpResponse,
 };
-use failure::Fail;
 use jsonwebtoken::errors::Error as JwtError;
 use mobc_redis::redis::RedisError;
 use serde_json::json;
+use thiserror::Error;
 
-#[derive(Debug, Fail)]
+#[derive(Debug, Error)]
 pub enum ServiceError {
-    #[fail(display = "Internal Server Error")]
+    #[error("Internal Server Error")]
     InternalError,
-    #[fail(display = "Internal Server Error")]
-    DatabaseError(RedisError),
-    #[fail(display = "Unauthorized")]
+    #[error("Internal Server Error")]
+    DatabaseError(#[from] RedisError),
+    #[error("Unauthorized")]
     Unauthorized,
-    #[fail(display = "Invalid JWT")]
-    InvalidJwt(JwtError),
-    #[fail(display = "Internal Server Error")]
-    EnvError(env::VarError),
-    #[fail(display = "User with username '{}' already exists", username)]
+    #[error("Invalid JWT")]
+    InvalidJwt(#[from] JwtError),
+    #[error("Internal Server Error")]
+    EnvError(#[from] env::VarError),
+    #[error("User with username '{username}' already exists")]
     UserAlreadyExists { username: String },
-    #[fail(display = "Internal Server Error")]
-    HashError(argon2::Error),
-    #[fail(display = "Missing 'Authorization' header with Bearer token")]
+    #[error("Internal Server Error")]
+    HashError(#[from] argon2::Error),
+    #[error("Missing 'Authorization' header with Bearer token")]
     MissingAuthHeader,
-    #[fail(display = "Invalid header value")]
+    #[error("Invalid header value")]
     InvalidHeader,
-    #[fail(display = "Invalid input")]
+    #[error("Invalid input")]
     ValidatorError(HashMap<String, String>),
-    #[fail(display = "Re-using refresh token")]
+    #[error("Re-using refresh token")]
     InvalidRefreshToken,
 }
 
@@ -56,30 +56,6 @@ impl ResponseError for ServiceError {
             Self::InvalidRefreshToken => StatusCode::UNAUTHORIZED,
             _ => StatusCode::INTERNAL_SERVER_ERROR,
         }
-    }
-}
-
-impl From<RedisError> for ServiceError {
-    fn from(err: RedisError) -> Self {
-        Self::DatabaseError(err)
-    }
-}
-
-impl From<JwtError> for ServiceError {
-    fn from(err: JwtError) -> Self {
-        Self::InvalidJwt(err)
-    }
-}
-
-impl From<env::VarError> for ServiceError {
-    fn from(err: env::VarError) -> Self {
-        Self::EnvError(err)
-    }
-}
-
-impl From<argon2::Error> for ServiceError {
-    fn from(err: argon2::Error) -> Self {
-        Self::HashError(err)
     }
 }
 

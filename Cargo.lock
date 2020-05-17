@@ -1193,7 +1193,6 @@ dependencies = [
  "clap",
  "digest",
  "env_logger",
- "failure",
  "futures",
  "jsonwebtoken",
  "log",
@@ -1203,6 +1202,7 @@ dependencies = [
  "rust-argon2",
  "serde",
  "serde_json",
+ "thiserror",
  "validator",
  "validator_derive",
 ]
