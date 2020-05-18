@@ -11,7 +11,7 @@ use validator::Validate;
 
 use super::{
     claims::{decode, get_token_pair, RefreshClaims},
-    login::Login,
+    login::{Login, Signup},
     logout::LogoutRequest,
 };
 use crate::{errors::ServiceError, AppState, Pool};
@@ -125,11 +125,16 @@ pub async fn logout(
 
 #[post("/signup")]
 pub async fn signup(
-    user: web::Json<Login>,
+    user: web::Json<Signup>,
     db: web::Data<Pool>,
+    state: web::Data<AppState>,
 ) -> Result<impl Responder, ServiceError> {
     let user = user.into_inner();
     user.validate()?;
+
+    if !user.verify_with_secret(&state.signup_secret) {
+        return Err(ServiceError::Unauthorized);
+    }
 
     let mut conn = db.get().await?;
     let exists: bool = conn.hexists("users", &user.username).await?;
