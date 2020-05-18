@@ -5,7 +5,7 @@ use actix_web::{middleware, web, App, HttpServer};
 use clap::Clap;
 use mobc_redis::{redis, RedisConnectionManager};
 
-use lunch_list_backend::{auth, list, not_found, user};
+use lunch_list_backend::{auth, list, not_found, user, AppState};
 
 const ASSETS_DIR: &str = "static";
 const INDEX_HTML: &str = "index.html";
@@ -18,26 +18,25 @@ const INDEX_HTML: &str = "index.html";
     setting = clap::AppSettings::ColoredHelp
 )]
 struct Opts {
-    #[clap(
-        short = "a",
-        long = "address",
-        env = "LUNCH_LIST_ADDR",
-        default_value = "localhost"
-    )]
+    /// Address to bind the server to
+    #[clap(short, long, env = "LUNCH_LIST_ADDR", default_value = "localhost")]
     address: String,
-    #[clap(
-        short = "p",
-        long = "port",
-        env = "LUNCH_LIST_PORT",
-        default_value = "8080"
-    )]
+
+    /// Port to bind the server to
+    #[clap(short, long, env = "LUNCH_LIST_PORT", default_value = "8080")]
     port: u16,
-    #[clap(
-        long = "redis-host",
-        env = "LUNCH_LIST_REDIS",
-        default_value = "localhost"
-    )]
+
+    /// Redis hostname to connect to
+    #[clap(long, env = "LUNCH_LIST_REDIS", default_value = "localhost")]
     redis_host: String,
+
+    /// Secret used for encoding and decoding JWTs
+    #[clap(long, env = "LUNCH_LIST_TOKEN_SECRET")]
+    token_secret: String,
+
+    /// Secret used when creating a new user
+    #[clap(long, env = "LUNCH_LIST_SIGNUP_SECRET")]
+    signup_secret: String,
 }
 
 async fn serve_index_html() -> Result<NamedFile, std::io::Error> {
@@ -55,9 +54,16 @@ async fn main() -> std::io::Result<()> {
 
     let pool = build_pool(&opts)?;
 
+    let token_secret = opts.token_secret;
+    let signup_secret = opts.signup_secret;
+
     HttpServer::new(move || {
         App::new()
             .data(pool.clone())
+            .data(AppState {
+                token_secret: token_secret.clone(),
+                signup_secret: signup_secret.clone(),
+            })
             .wrap(middleware::Logger::default())
             .wrap(middleware::Compress::default())
             .service(

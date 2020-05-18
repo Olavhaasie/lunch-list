@@ -4,7 +4,7 @@ use futures::future::{err, ok, Ready};
 use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
-use crate::errors::ServiceError;
+use crate::{errors::ServiceError, AppState};
 
 const TOKEN_ISSUER: &str = "lunch-list";
 
@@ -53,22 +53,24 @@ impl RefreshClaims {
 }
 
 /// Returns an access token and refresh token pair.
-pub fn get_token_pair(id: usize, name: String) -> Result<(String, String), ServiceError> {
+pub fn get_token_pair(
+    id: usize,
+    name: String,
+    secret: &[u8],
+) -> Result<(String, String), ServiceError> {
     let claims = Claims::new(id, name);
     let refresh_claims = RefreshClaims::new(id);
 
-    Ok((encode(&claims)?, encode(&refresh_claims)?))
+    Ok((encode(&claims, secret)?, encode(&refresh_claims, secret)?))
 }
 
-fn encode<T: Serialize>(claims: &T) -> Result<String, ServiceError> {
-    let secret = std::env::var("LUNCH_LIST_SECRET")?;
-    let encoding_key = EncodingKey::from_secret(secret.as_bytes());
+fn encode<T: Serialize>(claims: &T, secret: &[u8]) -> Result<String, ServiceError> {
+    let encoding_key = EncodingKey::from_secret(secret);
     jsonwebtoken::encode(&Header::default(), claims, &encoding_key).map_err(ServiceError::from)
 }
 
-pub fn decode<T: DeserializeOwned>(token: &str) -> Result<T, ServiceError> {
-    let secret = std::env::var("LUNCH_LIST_SECRET")?;
-    let decoding_key = DecodingKey::from_secret(secret.as_bytes());
+pub fn decode<T: DeserializeOwned>(token: &str, secret: &[u8]) -> Result<T, ServiceError> {
+    let decoding_key = DecodingKey::from_secret(secret);
     let validation = Validation {
         validate_exp: true,
         iss: Some(TOKEN_ISSUER.to_string()),
@@ -101,7 +103,16 @@ impl FromRequest for Claims {
             Ok(token) => token,
             Err(e) => return err(e),
         };
-        let result = decode::<Self>(&token);
+
+        let state = match req
+            .app_data::<AppState>()
+            .ok_or(ServiceError::InternalError)
+        {
+            Ok(s) => s,
+            Err(e) => return err(e),
+        };
+
+        let result = decode::<Self>(&token, state.token_secret.as_bytes());
         match result {
             Ok(claims) => ok(claims),
             Err(e) => err(e),

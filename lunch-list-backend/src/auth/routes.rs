@@ -14,7 +14,7 @@ use super::{
     login::Login,
     logout::LogoutRequest,
 };
-use crate::{errors::ServiceError, Pool};
+use crate::{errors::ServiceError, AppState, Pool};
 
 type Hasher = blake2::Blake2b;
 
@@ -22,6 +22,7 @@ type Hasher = blake2::Blake2b;
 pub async fn login(
     login: web::Json<Login>,
     db: web::Data<Pool>,
+    state: web::Data<AppState>,
 ) -> Result<impl Responder, ServiceError> {
     let login = login.into_inner();
     let mut conn = db.get().await?;
@@ -30,7 +31,8 @@ pub async fn login(
         Some(id) => {
             let password: String = conn.hget(&format!("user:{}", id), "password").await?;
             if login.verify_hash(&password)? {
-                let (access_token, refresh_token) = get_token_pair(id, login.username)?;
+                let (access_token, refresh_token) =
+                    get_token_pair(id, login.username, state.token_secret.as_bytes())?;
                 let digest = Hasher::digest(refresh_token.as_bytes());
 
                 conn.sadd(&format!("refresh_tokens:{}", id), digest.as_slice())
@@ -55,12 +57,13 @@ pub async fn login(
 pub async fn refresh(
     req: HttpRequest,
     db: web::Data<Pool>,
+    state: web::Data<AppState>,
 ) -> Result<impl Responder, ServiceError> {
     let token = req
         .cookie("refresh_token")
         .map(|c| c.value().to_string())
         .ok_or(ServiceError::Unauthorized)?;
-    let claims = decode::<RefreshClaims>(&token)?;
+    let claims = decode::<RefreshClaims>(&token, state.token_secret.as_bytes())?;
 
     let mut conn = db.get().await?;
     let digest = Hasher::digest(token.as_bytes());
@@ -76,7 +79,8 @@ pub async fn refresh(
         .hget(&format!("user:{}", claims.sub), "username")
         .await?;
 
-    let (access_token, refresh_token) = get_token_pair(claims.sub, name)?;
+    let (access_token, refresh_token) =
+        get_token_pair(claims.sub, name, state.token_secret.as_bytes())?;
 
     let digest = Hasher::digest(refresh_token.as_bytes());
     conn.sadd(&format!("refresh_tokens:{}", claims.sub), digest.as_slice())
@@ -96,11 +100,12 @@ pub async fn logout(
     req: HttpRequest,
     query: web::Query<LogoutRequest>,
     db: web::Data<Pool>,
+    state: web::Data<AppState>,
 ) -> Result<impl Responder, ServiceError> {
     let refresh_cookie = req
         .cookie("refresh_token")
         .ok_or(ServiceError::Unauthorized)?;
-    let claims = decode::<RefreshClaims>(refresh_cookie.value())?;
+    let claims = decode::<RefreshClaims>(refresh_cookie.value(), state.token_secret.as_bytes())?;
 
     let mut conn = db.get().await?;
 
