@@ -34,6 +34,8 @@ pub enum ServiceError {
     ValidatorError(HashMap<String, String>),
     #[error("Re-using refresh token")]
     InvalidRefreshToken,
+    #[error("Invalid signup secret")]
+    InvalidSignupSecret,
 }
 
 impl ResponseError for ServiceError {
@@ -47,13 +49,14 @@ impl ResponseError for ServiceError {
 
     fn status_code(&self) -> StatusCode {
         match self {
-            Self::Unauthorized => StatusCode::UNAUTHORIZED,
-            Self::InvalidJwt(_) => StatusCode::BAD_REQUEST,
-            Self::UserAlreadyExists { .. } => StatusCode::BAD_REQUEST,
-            Self::MissingAuthHeader => StatusCode::UNAUTHORIZED,
-            Self::InvalidHeader => StatusCode::BAD_REQUEST,
-            Self::ValidatorError { .. } => StatusCode::BAD_REQUEST,
-            Self::InvalidRefreshToken => StatusCode::UNAUTHORIZED,
+            Self::Unauthorized
+            | Self::MissingAuthHeader
+            | Self::InvalidRefreshToken
+            | Self::InvalidSignupSecret => StatusCode::UNAUTHORIZED,
+            Self::InvalidJwt(_)
+            | Self::UserAlreadyExists { .. }
+            | Self::InvalidHeader
+            | Self::ValidatorError { .. } => StatusCode::BAD_REQUEST,
             _ => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }

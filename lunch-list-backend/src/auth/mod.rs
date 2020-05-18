@@ -5,7 +5,7 @@ mod login;
 mod logout;
 mod routes;
 
-pub use claims::Claims;
+pub use claims::{Claims, ClaimsConfig};
 
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(

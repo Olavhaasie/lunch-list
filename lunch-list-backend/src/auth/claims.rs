@@ -4,7 +4,7 @@ use futures::future::{err, ok, Ready};
 use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
-use crate::{errors::ServiceError, AppState};
+use crate::errors::ServiceError;
 
 const TOKEN_ISSUER: &str = "lunch-list";
 
@@ -93,10 +93,22 @@ fn get_bearer_token(headers: &HeaderMap) -> Result<String, ServiceError> {
     }
 }
 
+#[derive(Debug, Default)]
+pub struct ClaimsConfig {
+    secret: String,
+}
+
+impl ClaimsConfig {
+    pub fn secret(mut self, secret: &str) -> Self {
+        self.secret = secret.to_string();
+        self
+    }
+}
+
 impl FromRequest for Claims {
     type Error = ServiceError;
     type Future = Ready<Result<Self, Self::Error>>;
-    type Config = ();
+    type Config = ClaimsConfig;
 
     fn from_request(req: &HttpRequest, _: &mut dev::Payload) -> Self::Future {
         let token = match get_bearer_token(req.headers()) {
@@ -104,16 +116,15 @@ impl FromRequest for Claims {
             Err(e) => return err(e),
         };
 
-        let state = match req
-            .app_data::<AppState>()
+        let config = match req
+            .app_data::<Self::Config>()
             .ok_or(ServiceError::InternalError)
         {
             Ok(s) => s,
             Err(e) => return err(e),
         };
 
-        let result = decode::<Self>(&token, state.token_secret.as_bytes());
-        match result {
+        match decode::<Self>(&token, config.secret.as_bytes()) {
             Ok(claims) => ok(claims),
             Err(e) => err(e),
         }

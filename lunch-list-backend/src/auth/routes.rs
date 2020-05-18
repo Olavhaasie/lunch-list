@@ -133,7 +133,7 @@ pub async fn signup(
     user.validate()?;
 
     if !user.verify_with_secret(&state.signup_secret) {
-        return Err(ServiceError::Unauthorized);
+        return Err(ServiceError::InvalidSignupSecret);
     }
 
     let mut conn = db.get().await?;

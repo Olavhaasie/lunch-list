@@ -1,7 +1,7 @@
 use std::io;
 
 use actix_files::{Files, NamedFile};
-use actix_web::{middleware, web, App, HttpServer};
+use actix_web::{middleware, web, App, FromRequest, HttpServer};
 use clap::Clap;
 use mobc_redis::{redis, RedisConnectionManager};
 
@@ -64,6 +64,7 @@ async fn main() -> std::io::Result<()> {
                 token_secret: token_secret.clone(),
                 signup_secret: signup_secret.clone(),
             })
+            .app_data(auth::Claims::configure(|cfg| cfg.secret(&token_secret)))
             .wrap(middleware::Logger::default())
             .wrap(middleware::Compress::default())
             .service(
