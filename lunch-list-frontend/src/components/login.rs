@@ -6,7 +6,7 @@ use yew::{
     html,
     html::NodeRef,
     services::fetch::{FetchService, FetchTask, Request, Response},
-    web_sys::HtmlInputElement,
+    web_sys::{Event, HtmlInputElement},
     Component, ComponentLink, Html, ShouldRender,
 };
 use yew_router::{agent::RouteRequest, prelude::*};
@@ -110,17 +110,17 @@ impl Component for LoginComponent {
     fn view(&self) -> Html {
         html! {
             <div class="login">
-                <label class="input-label" for="username">{ "Username" }</label>
-                <br></br>
-                <input class="input" ref=self.name_input.clone() type="text" name="username"/>
-                <br></br>
-                <label class="input-label" for="password">{ "Password" }</label>
-                <br></br>
-                <input class="input" ref=self.password_input.clone() type="password" name="password"/>
-                <br></br>
-                <button class ="login-button" onclick=self.link.callback(|_| Msg::LoginTask)>
-                    { "Login" }
-                </button>
+                <form onsubmit=self.link.callback(|e: Event| { e.prevent_default(); Msg::LoginTask })>
+                    <label class="input-label" for="un">{ "Username" }</label>
+                    <br></br>
+                    <input class="input" ref=self.name_input.clone() type="text" id ="un" name="username" pattern="[a-zA-Z0-9][a-zA-Z0-9 ]*" autofocus=true required=true/>
+                    <br></br>
+                    <label class="input-label" for="pw">{ "Password" }</label>
+                    <br></br>
+                    <input class="input" ref=self.password_input.clone() type="password" id="pw" name="password" required=true/>
+                    <br></br>
+                    <input class="login-button" type="submit" value="Login"/>
+                </form>
             </div>
         }
     }
