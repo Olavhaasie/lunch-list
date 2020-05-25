@@ -49,7 +49,8 @@ async fn get_lists(
     let mut lists = Vec::new();
     for id in ids {
         let list = conn.hgetall(&format!("list:{}", id)).await?;
-        lists.push(List::from_hash(id, list).unwrap())
+        let card = conn.scard(&format!("users:{}", id)).await?;
+        lists.push(List::from_hash(id, list).unwrap().with_size(card))
     }
     Ok(HttpResponse::Ok().json(json!({ "lists": lists })))
 }

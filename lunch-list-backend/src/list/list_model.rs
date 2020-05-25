@@ -14,6 +14,8 @@ pub struct List {
     #[serde(rename = "date")]
     pub date: NaiveDate,
     #[serde(skip_deserializing, skip_serializing_if = "Option::is_none")]
+    size: Option<usize>,
+    #[serde(skip_deserializing, skip_serializing_if = "Option::is_none")]
     users: Option<HashSet<String>>,
 }
 
@@ -37,12 +39,18 @@ impl List {
             id,
             list_type,
             date,
+            size: None,
             users: None,
         })
     }
 
     pub fn with_users(mut self, users: HashSet<String>) -> Self {
         self.users = Some(users);
+        self
+    }
+
+    pub fn with_size(mut self, size: usize) -> Self {
+        self.size = Some(size);
         self
     }
 }

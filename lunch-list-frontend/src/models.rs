@@ -32,4 +32,5 @@ pub struct List {
     pub date: NaiveDate,
     #[serde(rename = "type")]
     pub list_type: String,
+    pub size: usize,
 }

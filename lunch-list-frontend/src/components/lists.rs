@@ -112,7 +112,7 @@ impl ListsComponent {
                         { &list.date.format("%A, %-d %B") }
                     </div>
                     <div class="attendance-content">
-                        { 0 }
+                        { &list.size }
                     </div>
                 </li>
             </RouterAnchor<AppRoute>>

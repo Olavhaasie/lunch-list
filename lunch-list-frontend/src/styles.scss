@@ -163,8 +163,9 @@ body {
     color: $light-fg-color;
     font-weight: 600;
 }
-.attendance-content::before {
+.attendance-content::after {
     content: $person-emoji;
+    margin-left: 2px;
 }
 
 .list-header {
