@@ -67,15 +67,24 @@ body {
 }
 
 .input-label {
+    user-select: none;
     font-size: smaller;
     font-weight: bold;
 }
 
 .input {
+    outline: none;
     border: 2px solid $passive-color;
     margin-bottom: 7px;
     padding: 3px 5px 3px 5px;
     border-radius: 2px;
+
+    transition: box-shadow 0.2s;
+    box-shadow: none;
+}
+
+.input:focus {
+    box-shadow: 0 2px 8px #d8dee9;
 }
 
 .login-button {
