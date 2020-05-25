@@ -109,7 +109,7 @@ impl ListsComponent {
             <RouterAnchor<AppRoute> classes="list-anchor" route=AppRoute::List { id: list.id }>
                 <li class=("list-item", class)>
                     <div class="date-content">
-                        { &list.date }
+                        { &list.date.format("%A, %-d %B") }
                     </div>
                     <div class="attendance-content">
                         { 0 }

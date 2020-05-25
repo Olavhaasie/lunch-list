@@ -22,6 +22,7 @@ wee-alloc = ["wee_alloc"]
 
 [dependencies]
 anyhow = "1"
+chrono = { version = "0.4", default-features = false, features = ["alloc", "serde"] }
 log = "0.4"
 serde = { version = "1", features = ["derive"] }
 wasm-bindgen = "0.2"

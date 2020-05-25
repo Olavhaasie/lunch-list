@@ -91,7 +91,7 @@ impl Component for ListComponent {
                 <>
                 <div class="list-header">
                     <h1>{ &list.list_type }</h1>
-                    <h2>{ &list.date }</h2>
+                    <h2>{ &list.date.format("%A, %-d %B, %C%y") }</h2>
                     <div class="attendance-content">{ list.users.len() }</div>
                 </div>
                 <div class="list-container">
