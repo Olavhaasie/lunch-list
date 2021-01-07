@@ -24,20 +24,20 @@ Running `lunch-list` requires the following:
 
 * [Rust toolchain]
 * [`redis-server`]
-* [`wasm-pack`]
-* [`rollup`]
+* [`trunk`]
 
 Once these are installed you must first run `redis-server`. To quickly run
 everything Redis can be started with:
 
     redis-server
 
-Next you have to build and package the front-end web app.
+Next you have to build and package the front-end web app using `trunk`.
 
     cd lunch-list-frontend
-    ./deploy.sh
+    trunk build
+    cp -r dist ..
 
-This builds, packages and moves the files to be deployed to `/target/deploy`.
+This builds, packages and moves the files to be deployed to `dist/` and moves it to root.
 Then the `lunch-list` API can be started from the root of the repo with:
 
     cargo run -p lunch-list-backend
@@ -52,8 +52,7 @@ This will install `ll` to `~/.cargo/bin/`.
 
 [Rust toolchain]: https://www.rust-lang.org/tools/install
 [`redis-server`]: https://redis.io/topics/quickstart
-[`wasm-pack`]: https://rustwasm.github.io/wasm-pack
-[`rollup`]: https://rollupjs.org
+[`trunk`]: https://github.com/thedodd/trunk
 
 ### 🐳 Docker
 All required containers can easily be run using [Docker] and
