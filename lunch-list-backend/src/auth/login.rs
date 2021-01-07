@@ -2,7 +2,7 @@ use std::{borrow::Cow, collections::HashMap};
 
 use rand::Rng;
 use serde::{Deserialize, Deserializer};
-use validator::{Validate, ValidationError};
+use validator::ValidationError;
 use validator_derive::Validate;
 
 #[derive(Debug, Deserialize, Validate)]
@@ -77,6 +77,7 @@ impl Signup {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use validator::Validate;
 
     #[test]
     fn test_valid_username() {

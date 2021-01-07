@@ -93,7 +93,7 @@ async fn put_list(
                 .parse::<ListType>()
                 .unwrap();
             if list_type != list.list_type {
-                let id: usize = conn.incr("next_list_id", 1 as usize).await?;
+                let id: usize = conn.incr("next_list_id", 1_usize).await?;
                 redis::pipe()
                     .hset_multiple(
                         &format!("list:{}", id),
@@ -111,7 +111,7 @@ async fn put_list(
             }
         }
         [] => {
-            let id: usize = conn.incr("next_list_id", 1 as usize).await?;
+            let id: usize = conn.incr("next_list_id", 1_usize).await?;
             redis::pipe()
                 .hset_multiple(
                     &format!("list:{}", id),
