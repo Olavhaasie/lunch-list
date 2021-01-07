@@ -18,7 +18,6 @@ pub struct ListComponent {
     props: Props,
     list: Option<ListResponse>,
     link: ComponentLink<Self>,
-    fetch: FetchService,
     fetch_task: Option<FetchTask>,
     #[allow(dead_code)]
     token_agent: Box<dyn Bridge<TokenAgent>>,
@@ -45,7 +44,6 @@ impl Component for ListComponent {
             props,
             list: Default::default(),
             link,
-            fetch: FetchService::new(),
             fetch_task: Default::default(),
             token_agent,
         }
@@ -75,7 +73,7 @@ impl Component for ListComponent {
                     .header("Authorization", format!("Bearer {}", &token))
                     .body(Nothing)
                     .unwrap();
-                self.fetch_task = self.fetch.fetch(request, callback).ok();
+                self.fetch_task = FetchService::fetch(request, callback).ok();
             }
         }
         false

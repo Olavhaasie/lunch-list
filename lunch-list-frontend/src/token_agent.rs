@@ -16,7 +16,7 @@ pub struct TokenAgent {
 }
 
 impl Agent for TokenAgent {
-    type Reach = Context;
+    type Reach = Context<Self>;
     type Message = ();
     type Input = TokenRequest;
     type Output = String;

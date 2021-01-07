@@ -6,7 +6,7 @@ use yew::{
     html,
     html::NodeRef,
     services::fetch::{FetchService, FetchTask, Request, Response},
-    web_sys::{Event, HtmlInputElement},
+    web_sys::{FocusEvent, HtmlInputElement},
     Component, ComponentLink, Html, ShouldRender,
 };
 use yew_router::{agent::RouteRequest, prelude::*};
@@ -21,7 +21,6 @@ use crate::{
 pub struct LoginComponent {
     link: ComponentLink<Self>,
     router: Dispatcher<RouteAgent>,
-    fetch: FetchService,
     fetch_task: Option<FetchTask>,
     token: Dispatcher<TokenAgent>,
     name_input: NodeRef,
@@ -54,7 +53,7 @@ impl LoginComponent {
             .header("content-type", "application/json")
             .body(Json(&req))
             .unwrap();
-        self.fetch.fetch(request, callback).unwrap()
+        FetchService::fetch(request, callback).unwrap()
     }
 }
 
@@ -66,7 +65,6 @@ impl Component for LoginComponent {
         Self {
             link,
             router: RouteAgent::dispatcher(),
-            fetch: FetchService::new(),
             fetch_task: Default::default(),
             token: TokenAgent::dispatcher(),
             name_input: Default::default(),
@@ -110,15 +108,15 @@ impl Component for LoginComponent {
     fn view(&self) -> Html {
         html! {
             <div class="login">
-                <form onsubmit=self.link.callback(|e: Event| { e.prevent_default(); Msg::LoginTask })>
+                <form onsubmit=self.link.callback(|e: FocusEvent| { e.prevent_default(); Msg::LoginTask })>
                     <label class="input-label" for="un">{ "Username" }</label>
-                    <br></br>
+                    <br/>
                     <input class="input" ref=self.name_input.clone() type="text" id ="un" name="username" pattern="[a-zA-Z0-9][a-zA-Z0-9 ]*" autofocus=true required=true/>
-                    <br></br>
+                    <br/>
                     <label class="input-label" for="pw">{ "Password" }</label>
-                    <br></br>
+                    <br/>
                     <input class="input" ref=self.password_input.clone() type="password" id="pw" name="password" required=true/>
-                    <br></br>
+                    <br/>
                     <input class="login-button" type="submit" value="Login"/>
                 </form>
             </div>

@@ -55,11 +55,11 @@ impl Component for App {
         let request = Request::get(AuthApi::Refresh.to_string())
             .body(Nothing)
             .unwrap();
-        let fetch_task = FetchService::new().fetch(request, callback).ok();
+        let fetch_task = FetchService::fetch(request, callback).ok();
 
         let callback = link.callback(|_| Msg::RefreshToken);
         let duration = Duration::from_secs(REFRESH_INTERVAL_SECS);
-        let interval_task = IntervalService::new().spawn(duration, callback);
+        let interval_task = IntervalService::spawn(duration, callback);
 
         Self {
             link,
@@ -96,7 +96,7 @@ impl Component for App {
                 let request = Request::get(AuthApi::Refresh.to_string())
                     .body(Nothing)
                     .unwrap();
-                self.fetch_task = FetchService::new().fetch(request, callback).ok();
+                self.fetch_task = FetchService::fetch(request, callback).ok();
             }
             Msg::NoOp => (),
         }

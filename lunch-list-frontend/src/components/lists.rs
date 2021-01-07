@@ -18,7 +18,6 @@ use crate::{
 pub struct ListsComponent {
     lists: Vec<List>,
     link: ComponentLink<Self>,
-    fetch: FetchService,
     fetch_task: Option<FetchTask>,
     token: String,
     #[allow(dead_code)]
@@ -40,7 +39,6 @@ impl Component for ListsComponent {
         Self {
             lists: Default::default(),
             link,
-            fetch: FetchService::new(),
             fetch_task: Default::default(),
             token: "".to_string(),
             token_agent,
@@ -72,7 +70,7 @@ impl Component for ListsComponent {
                     .header("Authorization", format!("Bearer {}", &self.token))
                     .body(Nothing)
                     .unwrap();
-                self.fetch_task = self.fetch.fetch(request, callback).ok();
+                self.fetch_task = FetchService::fetch(request, callback).ok();
             }
         }
         false
