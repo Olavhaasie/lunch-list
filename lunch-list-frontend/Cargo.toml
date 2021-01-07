@@ -8,12 +8,7 @@ edition = "2018"
 repository = "https://github.com/Olavhaasie/lunch-list"
 license = "Apache-2.0"
 
-build = "build.rs"
-
 publish = false
-
-[lib]
-crate-type = ["cdylib"]
 
 [features]
 default = ["wee-alloc"]
@@ -31,5 +26,3 @@ wee_alloc = { version = "0.4", optional = true }
 yew = "0.17"
 yew-router = "0.14"
 
-[build-dependencies]
-sass-rs = "0.2"

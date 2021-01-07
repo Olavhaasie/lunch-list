@@ -5,4 +5,5 @@ dump.rdb
 **/*.rs.bk
 bin/
 pkg/
+dist/
 wasm-pack.log

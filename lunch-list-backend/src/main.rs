@@ -7,7 +7,7 @@ use mobc_redis::{redis, RedisConnectionManager};
 
 use lunch_list_backend::{auth, list, not_found, user, AppState};
 
-const ASSETS_DIR: &str = "static";
+const ASSETS_DIR: &str = "dist";
 const INDEX_HTML: &str = "index.html";
 
 #[derive(Clap)]
