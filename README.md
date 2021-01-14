@@ -4,6 +4,9 @@ fully written in [Rust] using the [actix-web] framework for server and API and
 [Redis] as database. The front-end web app is written with [WebAssembly] and
 [`yew`] web app framework.
 
+_This project is in no way finished and probably never will. Still, it is
+a fun project in learning Rust for web applications._
+
 [![Rust](https://github.com/Olavhaasie/lunch-list/workflows/Rust/badge.svg)](https://github.com/Olavhaasie/lunch-list/actions?query=workflow%3ARust)
 [![Docker](https://github.com/Olavhaasie/lunch-list/workflows/Docker/badge.svg)](https://github.com/Olavhaasie/lunch-list/packages/189215)
 
